@@ -1,4 +1,5 @@
 .vscode/
+docs/node_modules
 npm/
 .env
 styles.json

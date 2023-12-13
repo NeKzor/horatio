@@ -12,23 +12,23 @@ Deno.test('Remote', async (t) => {
     const result = await remote.client.connect(Deno.env.get('RPC_HOST')!, Number(Deno.env.get('RPC_PORT')!));
     assertEquals(result, true, 'Connected to server');
 
-    await t.step('Authentiate', async () => {
+    await t.step('Authenticate', async () => {
         const result = await remote.Authenticate(Deno.env.get('RPC_USER')!, Deno.env.get('RPC_PASS')!);
         assertEquals(result, true, 'call to Authenticate()');
     });
 
-    await t.step('Call', async () => {
-        let res = await remote.SetApiVersion('2023-04-24');
+    await t.step('Single calls', async () => {
+        let result = await remote.SetApiVersion('2023-04-24');
         assert(result, 'SetApiVersion()');
 
-        res = await remote.EnableCallbacks(true);
+        result = await remote.EnableCallbacks(true);
         assert(result, 'EnableCallbacks()');
 
-        res = await remote.TriggerModeScriptEventArray('XmlRpc.EnableCallbacks', ['true']);
+        result = await remote.TriggerModeScriptEventArray('XmlRpc.EnableCallbacks', ['true']);
         assert(result, 'TriggerModeScriptEventArray()');
     });
 
-    await t.step('Multicall', async () => {
+    await t.step('Multiple calls', async () => {
         const result = await remote.multiCall(async (call) => [
             await call.GetMapList(-1, 0),
             await call.GetSystemInfo(),

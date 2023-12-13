@@ -26,7 +26,7 @@ await build({
         version,
         description: 'Type-safe GBX-Remote client.',
         keywords: ['Trackmania'],
-        homepage: 'https://horatio.nekz.me',
+        homepage: 'https://horatio.land',
         bugs: {
             url: 'https://github.com/NeKzor/horatio/issues',
         },
@@ -39,7 +39,7 @@ await build({
     },
     postBuild() {
         Deno.copyFileSync('LICENSE', 'npm/LICENSE');
-        Deno.copyFileSync('README.md', 'npm/README.md');
+        Deno.copyFileSync('src/remote/README.md', 'npm/README.md');
     },
 });
 

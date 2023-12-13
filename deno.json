@@ -1,10 +1,10 @@
 {
     "tasks": {
-        "start": "deno run --allow-env --allow-read=.env,.env.example,.env.defaults --allow-net=127.0.0.1:5555 src/main.ts",
+        "start": "deno run --allow-env --allow-read=.env,.env.example,.env.defaults --allow-net=127.0.0.1:5000 src/main.ts",
         "gen": "deno run --allow-read=methods.json scripts/gen_remote.ts > src/remote/mod.ts",
         "docs": "deno run --allow-read=methods.json --allow-write=docs/docs/rpc.md scripts/gen_docs.ts > docs/docs/rpc.md",
         "methods": "deno run --allow-write=methods.json scripts/gen_methods.ts",
-        "test": "deno test --allow-env --allow-read=.env,.env.example,.env.defaults --allow-net=127.0.0.1:5555",
+        "test": "deno test --allow-env --allow-read=.env,.env.example,.env.defaults --allow-net=127.0.0.1:5000",
         "build:npm": "deno run -A scripts/build_npm.ts",
         "count": "tokei src/ -o json | jq '.TypeScript.code'",
         "check": "deno fmt --check && deno lint && deno task check:types",

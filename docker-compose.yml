@@ -1,0 +1,28 @@
+version: "3.8"
+services:
+  trackmania:
+    image: evotm/trackmania:2023-12-08-r0
+    container_name: "tm-server"
+    healthcheck:
+      test: 'nc -z -v 127.0.0.1 5000 || exit 1'
+      interval: 5s
+      timeout: 5s
+      retries: 3
+      start_period: 10s
+    restart: always 
+    ports:
+      #- '${SERVER_PORT}:2350/udp'
+      #- '${SERVER_PORT}:2350/tcp'
+      - "127.0.0.1:${RPC_PORT}:5000/tcp"
+    environment:
+      MASTER_LOGIN: '${MASTER_LOGIN}'
+      MASTER_PASSWORD: '${MASTER_PASSWORD}'
+      SERVER_NAME: '${SERVER_NAME}'
+      XMLRPC_ALLOWREMOTE: '${XMLRPC_ALLOWREMOTE}'
+      DISABLE_REPLAY_RECORDING: '${DISABLE_REPLAY_RECORDING}'
+      SAVE_ALL_INDIVIDUAL_RUNS: '${SAVE_ALL_INDIVIDUAL_RUNS}'
+      FORCE_IP_ADDRESS: '${FORCE_IP_ADDRESS}:${SERVER_PORT}'
+    volumes:
+      - 'serverData:/server/UserData'
+volumes:
+  serverData: null

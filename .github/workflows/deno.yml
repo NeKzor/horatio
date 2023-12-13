@@ -1,0 +1,47 @@
+name: Deno CI
+
+on:
+  push:
+    branches: ["main"]
+    paths:
+      - "src/**/*.ts"
+      - "tests/**/*.ts"
+  pull_request:
+    branches: ["main"]
+    paths:
+      - "src/**/*.ts"
+      - "tests/**/*.ts"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+
+    if: "!contains(github.event.head_commit.message, '[ci skip]')"
+
+    steps:
+      - uses: actions/checkout@v3
+
+      - uses: denoland/setup-deno@v1
+        with:
+          deno-version: v1.x
+
+      - name: Format, lint and types check
+        run: deno task check
+
+      - name: Setup Docker container
+        env:
+          MASTER_LOGIN: ${{ secrets.MASTER_LOGIN }}
+          MASTER_PASSWORD: ${{ secrets.MASTER_PASSWORD }}
+        run: |
+          cp .env.example .env
+          echo "MASTER_LOGIN=$MASTER_LOGIN" >> .env
+          echo "MASTER_PASSWORD=$MASTER_PASSWORD" >> .env
+          echo "RPC_PASS=SuperAdmin" >> .env
+          docker compose up -d
+
+      - name: Test
+        run: deno task test

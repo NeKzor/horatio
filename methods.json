@@ -1,0 +1,2070 @@
+{
+    "methods": [
+        {
+            "name": "system.listMethods",
+            "params": [],
+            "returnType": { "name": "Return Type", "type": "array", "fields": [{ "name": "1", "type": "unknown" }] },
+            "description": "Return an array of all available XML-RPC methods on this server.",
+            "deprecated": false,
+            "authorization": ""
+        },
+        {
+            "name": "system.methodSignature",
+            "params": [{ "name": "0", "type": "string" }],
+            "returnType": { "name": "Return Type", "type": "array", "fields": [{ "name": "1", "type": "unknown" }] },
+            "description": "Given the name of a method, return an array of legal signatures. Each signature is an array of strings.  The first item of each signature is the return type, and any others items are parameter types.",
+            "deprecated": false,
+            "authorization": ""
+        },
+        {
+            "name": "system.methodHelp",
+            "params": [{ "name": "0", "type": "string" }],
+            "returnType": { "name": "Return Type", "type": "string" },
+            "description": "Given the name of a method, return a help string.",
+            "deprecated": false,
+            "authorization": ""
+        },
+        {
+            "name": "system.multicall",
+            "params": [{ "name": "0", "type": "array", "fields": [{ "name": "1", "type": "unknown" }] }],
+            "returnType": { "name": "Return Type", "type": "array", "fields": [{ "name": "1", "type": "unknown" }] },
+            "description": "Process an array of calls, and return an array of results.  Calls should be structs of the form {'methodName': string, 'params': array}. Each result will either be a single-item array containing the result value, or a struct of the form {'faultCode': int, 'faultString': string}.  This is useful when you need to make lots of small calls without lots of round trips.",
+            "deprecated": false,
+            "authorization": ""
+        },
+        {
+            "name": "Authenticate",
+            "params": [{ "name": "0", "type": "string" }, { "name": "1", "type": "string" }],
+            "returnType": { "name": "Return Type", "type": "boolean" },
+            "description": "Allow user authentication by specifying a login and a password, to gain access to the set of functionalities corresponding to this authorization level.",
+            "deprecated": false,
+            "authorization": ""
+        },
+        {
+            "name": "ChangeAuthPassword",
+            "params": [{ "name": "0", "type": "string" }, { "name": "1", "type": "string" }],
+            "returnType": { "name": "Return Type", "type": "boolean" },
+            "description": "Change the password for the specified login/user.",
+            "deprecated": false,
+            "authorization": "SuperAdmin"
+        },
+        {
+            "name": "EnableCallbacks",
+            "params": [{ "name": "0", "type": "boolean" }],
+            "returnType": { "name": "Return Type", "type": "boolean" },
+            "description": "Allow the GameServer to call you back.",
+            "deprecated": false,
+            "authorization": ""
+        },
+        {
+            "name": "SetApiVersion",
+            "params": [{ "name": "0", "type": "string" }],
+            "returnType": { "name": "Return Type", "type": "boolean" },
+            "description": "Define the wanted api.",
+            "deprecated": false,
+            "authorization": ""
+        },
+        {
+            "name": "GetVersion",
+            "params": [],
+            "returnType": { "name": "Return Type", "type": "struct", "fields": [{ "name": "1", "type": "unknown" }] },
+            "description": "Returns a struct with the Name, TitleId, Version, Build and ApiVersion of the application remotely controlled.",
+            "deprecated": false,
+            "authorization": ""
+        },
+        {
+            "name": "GetStatus",
+            "params": [],
+            "returnType": { "name": "Return Type", "type": "struct", "fields": [{ "name": "1", "type": "unknown" }] },
+            "description": "Returns the current status of the server.",
+            "deprecated": false,
+            "authorization": ""
+        },
+        {
+            "name": "QuitGame",
+            "params": [],
+            "returnType": { "name": "Return Type", "type": "boolean" },
+            "description": "Quit the application.",
+            "deprecated": false,
+            "authorization": "SuperAdmin"
+        },
+        {
+            "name": "CallVote",
+            "params": [{ "name": "0", "type": "string" }],
+            "returnType": { "name": "Return Type", "type": "boolean" },
+            "description": "Call a vote for a cmd. The command is a XML string corresponding to an XmlRpc request.",
+            "deprecated": false,
+            "authorization": "Admin"
+        },
+        {
+            "name": "CallVoteEx",
+            "params": [
+                { "name": "0", "type": "string" },
+                { "name": "1", "type": "double" },
+                { "name": "2", "type": "int" },
+                { "name": "3", "type": "int" }
+            ],
+            "returnType": { "name": "Return Type", "type": "boolean" },
+            "description": "Extended call vote. Same as CallVote, but you can additionally supply specific parameters for this vote: a ratio, a time out and who is voting. Special timeout values: a ratio of '-1' means default; a timeout of '0' means default, '1' means indefinite; Voters values: '0' means only active players, '1' means any player, '2' is for everybody, pure spectators included.",
+            "deprecated": false,
+            "authorization": "Admin"
+        },
+        {
+            "name": "InternalCallVote",
+            "params": [],
+            "returnType": { "name": "Return Type", "type": "boolean" },
+            "description": "Used internally by game.",
+            "deprecated": false,
+            "authorization": ""
+        },
+        {
+            "name": "CancelVote",
+            "params": [],
+            "returnType": { "name": "Return Type", "type": "boolean" },
+            "description": "Cancel the current vote.",
+            "deprecated": false,
+            "authorization": "Admin"
+        },
+        {
+            "name": "GetCurrentCallVote",
+            "params": [],
+            "returnType": { "name": "Return Type", "type": "struct", "fields": [{ "name": "1", "type": "unknown" }] },
+            "description": "Returns the vote currently in progress. The returned structure is { CallerLogin, CmdName, CmdParam }.",
+            "deprecated": false,
+            "authorization": ""
+        },
+        {
+            "name": "SetCallVoteTimeOut",
+            "params": [{ "name": "0", "type": "int" }],
+            "returnType": { "name": "Return Type", "type": "boolean" },
+            "description": "Set a new timeout for waiting for votes. A zero value disables callvote. Requires a map restart to be taken into account.",
+            "deprecated": false,
+            "authorization": "Admin"
+        },
+        {
+            "name": "GetCallVoteTimeOut",
+            "params": [],
+            "returnType": { "name": "Return Type", "type": "struct", "fields": [{ "name": "1", "type": "unknown" }] },
+            "description": "Get the current and next timeout for waiting for votes. The struct returned contains two fields 'CurrentValue' and 'NextValue'.",
+            "deprecated": false,
+            "authorization": ""
+        },
+        {
+            "name": "SetCallVoteRatio",
+            "params": [{ "name": "0", "type": "double" }],
+            "returnType": { "name": "Return Type", "type": "boolean" },
+            "description": "Set a new default ratio for passing a vote. Must lie between 0 and 1.",
+            "deprecated": false,
+            "authorization": "Admin"
+        },
+        {
+            "name": "GetCallVoteRatio",
+            "params": [],
+            "returnType": { "name": "Return Type", "type": "double" },
+            "description": "Get the current default ratio for passing a vote. This value lies between 0 and 1.",
+            "deprecated": false,
+            "authorization": ""
+        },
+        {
+            "name": "SetCallVoteRatios",
+            "params": [{ "name": "0", "type": "array", "fields": [{ "name": "1", "type": "unknown" }] }],
+            "returnType": { "name": "Return Type", "type": "boolean" },
+            "description": "Set the ratios list for passing specific votes. The parameter is an array of structs {string Command, double Ratio}, ratio is in [0,1] or -1 for vote disabled.",
+            "deprecated": false,
+            "authorization": "Admin"
+        },
+        {
+            "name": "GetCallVoteRatios",
+            "params": [],
+            "returnType": { "name": "Return Type", "type": "array", "fields": [{ "name": "1", "type": "unknown" }] },
+            "description": "Get the current ratios for passing votes.",
+            "deprecated": false,
+            "authorization": ""
+        },
+        {
+            "name": "SetCallVoteRatiosEx",
+            "params": [
+                { "name": "0", "type": "boolean" },
+                { "name": "1", "type": "array", "fields": [{ "name": "1", "type": "unknown" }] }
+            ],
+            "returnType": { "name": "Return Type", "type": "boolean" },
+            "description": "Set the ratios list for passing specific votes, extended version with parameters matching. The parameters, a boolean ReplaceAll (or else, only modify specified ratios, leaving the previous ones unmodified) and an array of structs {string Command, string Param, double Ratio}, ratio is in [0,1] or -1 for vote disabled. Param is matched against the vote parameters to make more specific ratios, leave empty to match all votes for the command.",
+            "deprecated": false,
+            "authorization": "Admin"
+        },
+        {
+            "name": "GetCallVoteRatiosEx",
+            "params": [],
+            "returnType": { "name": "Return Type", "type": "array", "fields": [{ "name": "1", "type": "unknown" }] },
+            "description": "Get the current ratios for passing votes, extended version with parameters matching.",
+            "deprecated": false,
+            "authorization": ""
+        },
+        {
+            "name": "ChatSendServerMessage",
+            "params": [{ "name": "0", "type": "string" }],
+            "returnType": { "name": "Return Type", "type": "boolean" },
+            "description": "Send a text message to all clients without the server login.",
+            "deprecated": false,
+            "authorization": "Admin"
+        },
+        {
+            "name": "ChatSendServerMessageToLanguage",
+            "params": [
+                { "name": "0", "type": "array", "fields": [{ "name": "1", "type": "unknown" }] },
+                { "name": "1", "type": "string" }
+            ],
+            "returnType": { "name": "Return Type", "type": "boolean" },
+            "description": "Send a localised text message to all clients without the server login, or optionally to a Login (which can be a single login or a list of comma-separated logins). The parameter is an array of structures {Lang='xx', Text='...'}. If no matching language is found, the last text in the array is used.",
+            "deprecated": false,
+            "authorization": "Admin"
+        },
+        {
+            "name": "ChatSendServerMessageToId",
+            "params": [{ "name": "0", "type": "string" }, { "name": "1", "type": "int" }],
+            "returnType": { "name": "Return Type", "type": "boolean" },
+            "description": "Send a text message without the server login to the client with the specified PlayerId.",
+            "deprecated": false,
+            "authorization": "Admin"
+        },
+        {
+            "name": "ChatSendServerMessageToLogin",
+            "params": [{ "name": "0", "type": "string" }, { "name": "1", "type": "string" }],
+            "returnType": { "name": "Return Type", "type": "boolean" },
+            "description": "Send a text message without the server login to the client with the specified login. Login can be a single login or a list of comma-separated logins.",
+            "deprecated": false,
+            "authorization": "Admin"
+        },
+        {
+            "name": "ChatSend",
+            "params": [{ "name": "0", "type": "string" }],
+            "returnType": { "name": "Return Type", "type": "boolean" },
+            "description": "Send a text message to all clients.",
+            "deprecated": false,
+            "authorization": "Admin"
+        },
+        {
+            "name": "ChatSendToLanguage",
+            "params": [
+                { "name": "0", "type": "array", "fields": [{ "name": "1", "type": "unknown" }] },
+                { "name": "1", "type": "string" }
+            ],
+            "returnType": { "name": "Return Type", "type": "boolean" },
+            "description": "Send a localised text message to all clients, or optionally to a Login (which can be a single login or a list of comma-separated logins). The parameter is an array of structures {Lang='xx', Text='...'}. If no matching language is found, the last text in the array is used.",
+            "deprecated": false,
+            "authorization": "Admin"
+        },
+        {
+            "name": "ChatSendToLogin",
+            "params": [{ "name": "0", "type": "string" }, { "name": "1", "type": "string" }],
+            "returnType": { "name": "Return Type", "type": "boolean" },
+            "description": "Send a text message to the client with the specified login. Login can be a single login or a list of comma-separated logins.",
+            "deprecated": false,
+            "authorization": "Admin"
+        },
+        {
+            "name": "ChatSendToId",
+            "params": [{ "name": "0", "type": "string" }, { "name": "1", "type": "int" }],
+            "returnType": { "name": "Return Type", "type": "boolean" },
+            "description": "Send a text message to the client with the specified PlayerId.",
+            "deprecated": false,
+            "authorization": "Admin"
+        },
+        {
+            "name": "GetChatLines",
+            "params": [],
+            "returnType": { "name": "Return Type", "type": "array", "fields": [{ "name": "1", "type": "unknown" }] },
+            "description": "Returns the last chat lines. Maximum of 40 lines.",
+            "deprecated": false,
+            "authorization": "Admin"
+        },
+        {
+            "name": "ChatEnableManualRouting",
+            "params": [{ "name": "0", "type": "boolean" }, { "name": "1", "type": "boolean" }],
+            "returnType": { "name": "Return Type", "type": "boolean" },
+            "description": "The chat messages are no longer dispatched to the players, they only go to the rpc callback and the controller has to manually forward them. The second (optional) parameter allows all messages from the server to be automatically forwarded.",
+            "deprecated": false,
+            "authorization": "Admin"
+        },
+        {
+            "name": "ChatForwardToLogin",
+            "params": [
+                { "name": "0", "type": "string" },
+                { "name": "1", "type": "string" },
+                { "name": "2", "type": "string" }
+            ],
+            "returnType": { "name": "Return Type", "type": "boolean" },
+            "description": "(Text, SenderLogin, DestLogin) Send a text message to the specified DestLogin (or everybody if empty) on behalf of SenderLogin. DestLogin can be a single login or a list of comma-separated logins. Only available if manual routing is enabled.",
+            "deprecated": false,
+            "authorization": "Admin"
+        },
+        {
+            "name": "SendNotice",
+            "params": [
+                { "name": "0", "type": "string" },
+                { "name": "1", "type": "string" },
+                { "name": "2", "type": "int" }
+            ],
+            "returnType": { "name": "Return Type", "type": "boolean" },
+            "description": "Display a notice on all clients. The parameters are the text message to display, and the login of the avatar to display next to it (or '' for no avatar), and an optional 'variant' in [0 = normal, 1 = Sad, 2 = Happy].",
+            "deprecated": false,
+            "authorization": "Admin"
+        },
+        {
+            "name": "SendNoticeToId",
+            "params": [
+                { "name": "0", "type": "int" },
+                { "name": "1", "type": "string" },
+                { "name": "2", "type": "int" },
+                { "name": "3", "type": "int" }
+            ],
+            "returnType": { "name": "Return Type", "type": "boolean" },
+            "description": "Display a notice on the client with the specified UId. The parameters are the Uid of the client to whom the notice is sent, the text message to display, and the UId of the avatar to display next to it (or '255' for no avatar), and an optional 'variant' in [0 = normal, 1 = Sad, 2 = Happy].",
+            "deprecated": false,
+            "authorization": "Admin"
+        },
+        {
+            "name": "SendNoticeToLogin",
+            "params": [
+                { "name": "0", "type": "string" },
+                { "name": "1", "type": "string" },
+                { "name": "2", "type": "string" },
+                { "name": "3", "type": "int" }
+            ],
+            "returnType": { "name": "Return Type", "type": "boolean" },
+            "description": "Display a notice on the client with the specified login. The parameters are the login of the client to whom the notice is sent, the text message to display, and the login of the avatar to display next to it (or '' for no avatar), and an optional 'variant' in [0 = normal, 1 = Sad, 2 = Happy]. Login can be a single login or a list of comma-separated logins. ",
+            "deprecated": false,
+            "authorization": "Admin"
+        },
+        {
+            "name": "SendDisplayManialinkPage",
+            "params": [
+                { "name": "0", "type": "string" },
+                { "name": "1", "type": "int" },
+                { "name": "2", "type": "boolean" }
+            ],
+            "returnType": { "name": "Return Type", "type": "boolean" },
+            "description": "Display a manialink page on all clients. The parameters are the xml description of the page to display, a timeout to autohide it (0 = permanent), and a boolean to indicate whether the page must be hidden as soon as the user clicks on a page option.",
+            "deprecated": false,
+            "authorization": "Admin"
+        },
+        {
+            "name": "SendDisplayManialinkPageToId",
+            "params": [
+                { "name": "0", "type": "int" },
+                { "name": "1", "type": "string" },
+                { "name": "2", "type": "int" },
+                { "name": "3", "type": "boolean" }
+            ],
+            "returnType": { "name": "Return Type", "type": "boolean" },
+            "description": "Display a manialink page on the client with the specified UId. The first parameter is the UId of the player, the other are identical to 'SendDisplayManialinkPage'.",
+            "deprecated": false,
+            "authorization": "Admin"
+        },
+        {
+            "name": "SendDisplayManialinkPageToLogin",
+            "params": [
+                { "name": "0", "type": "string" },
+                { "name": "1", "type": "string" },
+                { "name": "2", "type": "int" },
+                { "name": "3", "type": "boolean" }
+            ],
+            "returnType": { "name": "Return Type", "type": "boolean" },
+            "description": "Display a manialink page on the client with the specified login. The first parameter is the login of the player, the other are identical to 'SendDisplayManialinkPage'. Login can be a single login or a list of comma-separated logins.",
+            "deprecated": false,
+            "authorization": "Admin"
+        },
+        {
+            "name": "SendHideManialinkPage",
+            "params": [],
+            "returnType": { "name": "Return Type", "type": "boolean" },
+            "description": "Hide the displayed manialink page on all clients.",
+            "deprecated": false,
+            "authorization": "Admin"
+        },
+        {
+            "name": "SendHideManialinkPageToId",
+            "params": [{ "name": "0", "type": "int" }],
+            "returnType": { "name": "Return Type", "type": "boolean" },
+            "description": "Hide the displayed manialink page on the client with the specified UId.",
+            "deprecated": false,
+            "authorization": "Admin"
+        },
+        {
+            "name": "SendHideManialinkPageToLogin",
+            "params": [{ "name": "0", "type": "string" }],
+            "returnType": { "name": "Return Type", "type": "boolean" },
+            "description": "Hide the displayed manialink page on the client with the specified login. Login can be a single login or a list of comma-separated logins.",
+            "deprecated": false,
+            "authorization": "Admin"
+        },
+        {
+            "name": "GetManialinkPageAnswers",
+            "params": [],
+            "returnType": { "name": "Return Type", "type": "array", "fields": [{ "name": "1", "type": "unknown" }] },
+            "description": "Returns the latest results from the current manialink page, as an array of structs {string Login, int PlayerId, int Result} Result==0 -> no answer, Result>0.... -> answer from the player.",
+            "deprecated": false,
+            "authorization": ""
+        },
+        {
+            "name": "SendOpenLinkToId",
+            "params": [
+                { "name": "0", "type": "int" },
+                { "name": "1", "type": "string" },
+                { "name": "2", "type": "int" }
+            ],
+            "returnType": { "name": "Return Type", "type": "boolean" },
+            "description": "Opens a link in the client with the specified UId. The parameters are the Uid of the client to whom the link to open is sent, the link url, and the 'LinkType' (0 in the external browser, 1 in the internal manialink browser).",
+            "deprecated": false,
+            "authorization": "Admin"
+        },
+        {
+            "name": "SendOpenLinkToLogin",
+            "params": [
+                { "name": "0", "type": "string" },
+                { "name": "1", "type": "string" },
+                { "name": "2", "type": "int" }
+            ],
+            "returnType": { "name": "Return Type", "type": "boolean" },
+            "description": "Opens a link in the client with the specified login. The parameters are the login of the client to whom the link to open is sent, the link url, and the 'LinkType' (0 in the external browser, 1 in the internal manialink browser). Login can be a single login or a list of comma-separated logins. ",
+            "deprecated": false,
+            "authorization": "Admin"
+        },
+        {
+            "name": "Kick",
+            "params": [{ "name": "0", "type": "string" }, { "name": "1", "type": "string" }],
+            "returnType": { "name": "Return Type", "type": "boolean" },
+            "description": "Kick the player with the specified login, with an optional message.",
+            "deprecated": false,
+            "authorization": "Admin"
+        },
+        {
+            "name": "KickId",
+            "params": [{ "name": "0", "type": "int" }, { "name": "1", "type": "string" }],
+            "returnType": { "name": "Return Type", "type": "boolean" },
+            "description": "Kick the player with the specified PlayerId, with an optional message.",
+            "deprecated": false,
+            "authorization": "Admin"
+        },
+        {
+            "name": "Ban",
+            "params": [{ "name": "0", "type": "string" }, { "name": "1", "type": "string" }],
+            "returnType": { "name": "Return Type", "type": "boolean" },
+            "description": "Ban the player with the specified login, with an optional message.",
+            "deprecated": false,
+            "authorization": "Admin"
+        },
+        {
+            "name": "BanAndBlackList",
+            "params": [
+                { "name": "0", "type": "string" },
+                { "name": "1", "type": "string" },
+                { "name": "2", "type": "boolean" }
+            ],
+            "returnType": { "name": "Return Type", "type": "boolean" },
+            "description": "Ban the player with the specified login, with a message. Add it to the black list, and optionally save the new list.",
+            "deprecated": false,
+            "authorization": "Admin"
+        },
+        {
+            "name": "BanId",
+            "params": [{ "name": "0", "type": "int" }, { "name": "1", "type": "string" }],
+            "returnType": { "name": "Return Type", "type": "boolean" },
+            "description": "Ban the player with the specified PlayerId, with an optional message.",
+            "deprecated": false,
+            "authorization": "Admin"
+        },
+        {
+            "name": "UnBan",
+            "params": [{ "name": "0", "type": "string" }],
+            "returnType": { "name": "Return Type", "type": "boolean" },
+            "description": "Unban the player with the specified login.",
+            "deprecated": false,
+            "authorization": "Admin"
+        },
+        {
+            "name": "CleanBanList",
+            "params": [],
+            "returnType": { "name": "Return Type", "type": "boolean" },
+            "description": "Clean the ban list of the server.",
+            "deprecated": false,
+            "authorization": "Admin"
+        },
+        {
+            "name": "GetBanList",
+            "params": [{ "name": "0", "type": "int" }, { "name": "1", "type": "int" }],
+            "returnType": { "name": "Return Type", "type": "array", "fields": [{ "name": "1", "type": "unknown" }] },
+            "description": "Returns the list of banned players. This method takes two parameters. The first parameter specifies the maximum number of infos to be returned, and the second one the starting index in the list. The list is an array of structures. Each structure contains the following fields : Login, ClientName and IPAddress.",
+            "deprecated": false,
+            "authorization": ""
+        },
+        {
+            "name": "BlackList",
+            "params": [{ "name": "0", "type": "string" }],
+            "returnType": { "name": "Return Type", "type": "boolean" },
+            "description": "Blacklist the player with the specified login.",
+            "deprecated": false,
+            "authorization": "SuperAdmin"
+        },
+        {
+            "name": "BlackListId",
+            "params": [{ "name": "0", "type": "int" }],
+            "returnType": { "name": "Return Type", "type": "boolean" },
+            "description": "Blacklist the player with the specified PlayerId.",
+            "deprecated": false,
+            "authorization": "SuperAdmin"
+        },
+        {
+            "name": "UnBlackList",
+            "params": [{ "name": "0", "type": "string" }],
+            "returnType": { "name": "Return Type", "type": "boolean" },
+            "description": "UnBlackList the player with the specified login.",
+            "deprecated": false,
+            "authorization": "SuperAdmin"
+        },
+        {
+            "name": "CleanBlackList",
+            "params": [],
+            "returnType": { "name": "Return Type", "type": "boolean" },
+            "description": "Clean the blacklist of the server.",
+            "deprecated": false,
+            "authorization": "SuperAdmin"
+        },
+        {
+            "name": "GetBlackList",
+            "params": [{ "name": "0", "type": "int" }, { "name": "1", "type": "int" }],
+            "returnType": { "name": "Return Type", "type": "array", "fields": [{ "name": "1", "type": "unknown" }] },
+            "description": "Returns the list of blacklisted players. This method takes two parameters. The first parameter specifies the maximum number of infos to be returned, and the second one the starting index in the list. The list is an array of structures. Each structure contains the following fields : Login.",
+            "deprecated": false,
+            "authorization": ""
+        },
+        {
+            "name": "LoadBlackList",
+            "params": [{ "name": "0", "type": "string" }],
+            "returnType": { "name": "Return Type", "type": "boolean" },
+            "description": "Load the black list file with the specified file name.",
+            "deprecated": false,
+            "authorization": "Admin"
+        },
+        {
+            "name": "SaveBlackList",
+            "params": [{ "name": "0", "type": "string" }],
+            "returnType": { "name": "Return Type", "type": "boolean" },
+            "description": "Save the black list in the file with specified file name.",
+            "deprecated": false,
+            "authorization": "Admin"
+        },
+        {
+            "name": "AddGuest",
+            "params": [{ "name": "0", "type": "string" }],
+            "returnType": { "name": "Return Type", "type": "boolean" },
+            "description": "Add the player with the specified login on the guest list.",
+            "deprecated": false,
+            "authorization": "Admin"
+        },
+        {
+            "name": "AddGuestId",
+            "params": [{ "name": "0", "type": "int" }],
+            "returnType": { "name": "Return Type", "type": "boolean" },
+            "description": "Add the player with the specified PlayerId on the guest list.",
+            "deprecated": false,
+            "authorization": "Admin"
+        },
+        {
+            "name": "RemoveGuest",
+            "params": [{ "name": "0", "type": "string" }],
+            "returnType": { "name": "Return Type", "type": "boolean" },
+            "description": "Remove the player with the specified login from the guest list.",
+            "deprecated": false,
+            "authorization": "Admin"
+        },
+        {
+            "name": "RemoveGuestId",
+            "params": [{ "name": "0", "type": "int" }],
+            "returnType": { "name": "Return Type", "type": "boolean" },
+            "description": "Remove the player with the specified PlayerId from the guest list.",
+            "deprecated": false,
+            "authorization": "Admin"
+        },
+        {
+            "name": "CleanGuestList",
+            "params": [],
+            "returnType": { "name": "Return Type", "type": "boolean" },
+            "description": "Clean the guest list of the server.",
+            "deprecated": false,
+            "authorization": "Admin"
+        },
+        {
+            "name": "GetGuestList",
+            "params": [{ "name": "0", "type": "int" }, { "name": "1", "type": "int" }],
+            "returnType": { "name": "Return Type", "type": "array", "fields": [{ "name": "1", "type": "unknown" }] },
+            "description": "Returns the list of players on the guest list. This method takes two parameters. The first parameter specifies the maximum number of infos to be returned, and the second one the starting index in the list. The list is an array of structures. Each structure contains the following fields : Login.",
+            "deprecated": false,
+            "authorization": ""
+        },
+        {
+            "name": "LoadGuestList",
+            "params": [{ "name": "0", "type": "string" }],
+            "returnType": { "name": "Return Type", "type": "boolean" },
+            "description": "Load the guest list file with the specified file name.",
+            "deprecated": false,
+            "authorization": "Admin"
+        },
+        {
+            "name": "SaveGuestList",
+            "params": [{ "name": "0", "type": "string" }],
+            "returnType": { "name": "Return Type", "type": "boolean" },
+            "description": "Save the guest list in the file with specified file name.",
+            "deprecated": false,
+            "authorization": "Admin"
+        },
+        {
+            "name": "SetBuddyNotification",
+            "params": [{ "name": "0", "type": "string" }, { "name": "1", "type": "boolean" }],
+            "returnType": { "name": "Return Type", "type": "boolean" },
+            "description": "Sets whether buddy notifications should be sent in the chat. login is the login of the player, or '' for global setting, and enabled is the value.",
+            "deprecated": false,
+            "authorization": "Admin"
+        },
+        {
+            "name": "GetBuddyNotification",
+            "params": [{ "name": "0", "type": "string" }],
+            "returnType": { "name": "Return Type", "type": "boolean" },
+            "description": "Gets whether buddy notifications are enabled for login, or '' to get the global setting.",
+            "deprecated": false,
+            "authorization": ""
+        },
+        {
+            "name": "WriteFile",
+            "params": [{ "name": "0", "type": "string" }, { "name": "1", "type": "base64" }],
+            "returnType": { "name": "Return Type", "type": "boolean" },
+            "description": "Write the data to the specified file. The filename is relative to the Maps path.",
+            "deprecated": false,
+            "authorization": "Admin"
+        },
+        {
+            "name": "TunnelSendDataToId",
+            "params": [{ "name": "0", "type": "int" }, { "name": "1", "type": "base64" }],
+            "returnType": { "name": "Return Type", "type": "boolean" },
+            "description": "Send the data to the specified player.",
+            "deprecated": false,
+            "authorization": "Admin"
+        },
+        {
+            "name": "TunnelSendDataToLogin",
+            "params": [{ "name": "0", "type": "string" }, { "name": "1", "type": "base64" }],
+            "returnType": { "name": "Return Type", "type": "boolean" },
+            "description": "Send the data to the specified player. Login can be a single login or a list of comma-separated logins.",
+            "deprecated": false,
+            "authorization": "Admin"
+        },
+        {
+            "name": "Echo",
+            "params": [{ "name": "0", "type": "string" }, { "name": "1", "type": "string" }],
+            "returnType": { "name": "Return Type", "type": "boolean" },
+            "description": "Just log the parameters and invoke a callback. Can be used to talk to other xmlrpc clients connected, or to make custom votes. If used in a callvote, the first parameter will be used as the vote message on the clients.",
+            "deprecated": false,
+            "authorization": "Admin"
+        },
+        {
+            "name": "Ignore",
+            "params": [{ "name": "0", "type": "string" }],
+            "returnType": { "name": "Return Type", "type": "boolean" },
+            "description": "Ignore the player with the specified login.",
+            "deprecated": false,
+            "authorization": "Admin"
+        },
+        {
+            "name": "IgnoreId",
+            "params": [{ "name": "0", "type": "int" }],
+            "returnType": { "name": "Return Type", "type": "boolean" },
+            "description": "Ignore the player with the specified PlayerId.",
+            "deprecated": false,
+            "authorization": "Admin"
+        },
+        {
+            "name": "UnIgnore",
+            "params": [{ "name": "0", "type": "string" }],
+            "returnType": { "name": "Return Type", "type": "boolean" },
+            "description": "Unignore the player with the specified login.",
+            "deprecated": false,
+            "authorization": "Admin"
+        },
+        {
+            "name": "UnIgnoreId",
+            "params": [{ "name": "0", "type": "int" }],
+            "returnType": { "name": "Return Type", "type": "boolean" },
+            "description": "Unignore the player with the specified PlayerId.",
+            "deprecated": false,
+            "authorization": "Admin"
+        },
+        {
+            "name": "CleanIgnoreList",
+            "params": [],
+            "returnType": { "name": "Return Type", "type": "boolean" },
+            "description": "Clean the ignore list of the server.",
+            "deprecated": false,
+            "authorization": "Admin"
+        },
+        {
+            "name": "GetIgnoreList",
+            "params": [{ "name": "0", "type": "int" }, { "name": "1", "type": "int" }],
+            "returnType": { "name": "Return Type", "type": "array", "fields": [{ "name": "1", "type": "unknown" }] },
+            "description": "Returns the list of ignored players. This method takes two parameters. The first parameter specifies the maximum number of infos to be returned, and the second one the starting index in the list. The list is an array of structures. Each structure contains the following fields : Login.",
+            "deprecated": false,
+            "authorization": ""
+        },
+        {
+            "name": "Pay",
+            "params": [
+                { "name": "0", "type": "string" },
+                { "name": "1", "type": "int" },
+                { "name": "2", "type": "string" }
+            ],
+            "returnType": { "name": "Return Type", "type": "int" },
+            "description": "Pay planets from the server account to a player, returns the BillId. This method takes three parameters: Login of the payee, Cost in planets to pay and a Label to send with the payment. The creation of the transaction itself may cost planets, so you need to have planets on the server account.",
+            "deprecated": false,
+            "authorization": "Admin"
+        },
+        {
+            "name": "SendBill",
+            "params": [
+                { "name": "0", "type": "string" },
+                { "name": "1", "type": "int" },
+                { "name": "2", "type": "string" },
+                { "name": "3", "type": "string" }
+            ],
+            "returnType": { "name": "Return Type", "type": "int" },
+            "description": "Create a bill, send it to a player, and return the BillId. This method takes four parameters: LoginFrom of the payer, Cost in planets the player has to pay, Label of the transaction and an optional LoginTo of the payee (if empty string, then the server account is used). The creation of the transaction itself may cost planets, so you need to have planets on the server account.",
+            "deprecated": false,
+            "authorization": "Admin"
+        },
+        {
+            "name": "GetBillState",
+            "params": [{ "name": "0", "type": "int" }],
+            "returnType": { "name": "Return Type", "type": "struct", "fields": [{ "name": "1", "type": "unknown" }] },
+            "description": "Returns the current state of a bill. This method takes one parameter, the BillId. Returns a struct containing State, StateName and TransactionId. Possible enum values are: CreatingTransaction, Issued, ValidatingPayement, Payed, Refused, Error.",
+            "deprecated": false,
+            "authorization": ""
+        },
+        {
+            "name": "GetServerPlanets",
+            "params": [],
+            "returnType": { "name": "Return Type", "type": "int" },
+            "description": "Returns the current number of planets on the server account.",
+            "deprecated": false,
+            "authorization": ""
+        },
+        {
+            "name": "GetServerCoppers",
+            "params": [],
+            "returnType": { "name": "Return Type", "type": "int" },
+            "description": "(deprecated)",
+            "deprecated": true,
+            "authorization": ""
+        },
+        {
+            "name": "GetSystemInfo",
+            "params": [],
+            "returnType": { "name": "Return Type", "type": "struct", "fields": [{ "name": "1", "type": "unknown" }] },
+            "description": "Get some system infos, including connection rates (in kbps).",
+            "deprecated": false,
+            "authorization": ""
+        },
+        {
+            "name": "SetConnectionRates",
+            "params": [{ "name": "0", "type": "int" }, { "name": "1", "type": "int" }],
+            "returnType": { "name": "Return Type", "type": "boolean" },
+            "description": "Set the download and upload rates (in kbps).",
+            "deprecated": false,
+            "authorization": ""
+        },
+        {
+            "name": "GetServerTags",
+            "params": [],
+            "returnType": { "name": "Return Type", "type": "array", "fields": [{ "name": "1", "type": "unknown" }] },
+            "description": "Returns the list of tags and associated values set on this server.",
+            "deprecated": false,
+            "authorization": "Admin"
+        },
+        {
+            "name": "SetServerTag",
+            "params": [{ "name": "0", "type": "string" }, { "name": "1", "type": "string" }],
+            "returnType": { "name": "Return Type", "type": "boolean" },
+            "description": "Set a tag and its value on the server. This method takes two parameters. The first parameter specifies the name of the tag, and the second one its value. The list is an array of structures {string Name, string Value}.",
+            "deprecated": false,
+            "authorization": "Admin"
+        },
+        {
+            "name": "UnsetServerTag",
+            "params": [{ "name": "0", "type": "string" }],
+            "returnType": { "name": "Return Type", "type": "boolean" },
+            "description": "Unset the tag with the specified name on the server.",
+            "deprecated": false,
+            "authorization": "Admin"
+        },
+        {
+            "name": "ResetServerTags",
+            "params": [],
+            "returnType": { "name": "Return Type", "type": "boolean" },
+            "description": "Reset all tags on the server.",
+            "deprecated": false,
+            "authorization": "Admin"
+        },
+        {
+            "name": "SetServerName",
+            "params": [{ "name": "0", "type": "string" }],
+            "returnType": { "name": "Return Type", "type": "boolean" },
+            "description": "Set a new server name in utf8 format.",
+            "deprecated": false,
+            "authorization": "Admin"
+        },
+        {
+            "name": "GetServerName",
+            "params": [],
+            "returnType": { "name": "Return Type", "type": "string" },
+            "description": "Get the server name in utf8 format.",
+            "deprecated": false,
+            "authorization": ""
+        },
+        {
+            "name": "SetServerComment",
+            "params": [{ "name": "0", "type": "string" }],
+            "returnType": { "name": "Return Type", "type": "boolean" },
+            "description": "Set a new server comment in utf8 format.",
+            "deprecated": false,
+            "authorization": "Admin"
+        },
+        {
+            "name": "GetServerComment",
+            "params": [],
+            "returnType": { "name": "Return Type", "type": "string" },
+            "description": "Get the server comment in utf8 format.",
+            "deprecated": false,
+            "authorization": ""
+        },
+        {
+            "name": "SetHideServer",
+            "params": [{ "name": "0", "type": "int" }],
+            "returnType": { "name": "Return Type", "type": "boolean" },
+            "description": "Set whether the server should be hidden from the public server list (0 = visible, 1 = always hidden, 2 = hidden from nations).",
+            "deprecated": false,
+            "authorization": "Admin"
+        },
+        {
+            "name": "GetHideServer",
+            "params": [],
+            "returnType": { "name": "Return Type", "type": "int" },
+            "description": "Get whether the server wants to be hidden from the public server list.",
+            "deprecated": false,
+            "authorization": ""
+        },
+        {
+            "name": "SetServerPassword",
+            "params": [{ "name": "0", "type": "string" }],
+            "returnType": { "name": "Return Type", "type": "boolean" },
+            "description": "Set a new password for the server.",
+            "deprecated": false,
+            "authorization": "Admin"
+        },
+        {
+            "name": "GetServerPassword",
+            "params": [],
+            "returnType": { "name": "Return Type", "type": "string" },
+            "description": "Get the server password if called as Admin or Super Admin, else returns if a password is needed or not.",
+            "deprecated": false,
+            "authorization": ""
+        },
+        {
+            "name": "SetServerPasswordForSpectator",
+            "params": [{ "name": "0", "type": "string" }],
+            "returnType": { "name": "Return Type", "type": "boolean" },
+            "description": "Set a new password for the spectator mode.",
+            "deprecated": false,
+            "authorization": "Admin"
+        },
+        {
+            "name": "GetServerPasswordForSpectator",
+            "params": [],
+            "returnType": { "name": "Return Type", "type": "string" },
+            "description": "Get the password for spectator mode if called as Admin or Super Admin, else returns if a password is needed or not.",
+            "deprecated": false,
+            "authorization": ""
+        },
+        {
+            "name": "SetMaxPlayers",
+            "params": [{ "name": "0", "type": "int" }],
+            "returnType": { "name": "Return Type", "type": "boolean" },
+            "description": "Set a new maximum number of players. Requires a map restart to be taken into account.",
+            "deprecated": false,
+            "authorization": "Admin"
+        },
+        {
+            "name": "GetMaxPlayers",
+            "params": [],
+            "returnType": { "name": "Return Type", "type": "struct", "fields": [{ "name": "1", "type": "unknown" }] },
+            "description": "Get the current and next maximum number of players allowed on server. The struct returned contains two fields CurrentValue and NextValue.",
+            "deprecated": false,
+            "authorization": ""
+        },
+        {
+            "name": "SetMaxSpectators",
+            "params": [{ "name": "0", "type": "int" }],
+            "returnType": { "name": "Return Type", "type": "boolean" },
+            "description": "Set a new maximum number of Spectators. Requires a map restart to be taken into account.",
+            "deprecated": false,
+            "authorization": "Admin"
+        },
+        {
+            "name": "GetMaxSpectators",
+            "params": [],
+            "returnType": { "name": "Return Type", "type": "struct", "fields": [{ "name": "1", "type": "unknown" }] },
+            "description": "Get the current and next maximum number of Spectators allowed on server. The struct returned contains two fields CurrentValue and NextValue.",
+            "deprecated": false,
+            "authorization": ""
+        },
+        {
+            "name": "SetLobbyInfo",
+            "params": [
+                { "name": "0", "type": "boolean" },
+                { "name": "1", "type": "int" },
+                { "name": "2", "type": "int" },
+                { "name": "3", "type": "double" }
+            ],
+            "returnType": { "name": "Return Type", "type": "boolean" },
+            "description": "Declare if the server is a lobby, the number and maximum number of players currently managed by it, and the average level of the players.",
+            "deprecated": false,
+            "authorization": "Admin"
+        },
+        {
+            "name": "GetLobbyInfo",
+            "params": [],
+            "returnType": { "name": "Return Type", "type": "struct", "fields": [{ "name": "1", "type": "unknown" }] },
+            "description": "Get whether the server if a lobby, the number and maximum number of players currently managed by it. The struct returned contains 4 fields IsLobby, LobbyPlayers, LobbyMaxPlayers, and LobbyPlayersLevel.",
+            "deprecated": false,
+            "authorization": ""
+        },
+        {
+            "name": "CustomizeQuitDialog",
+            "params": [
+                { "name": "0", "type": "string" },
+                { "name": "1", "type": "string" },
+                { "name": "2", "type": "boolean" },
+                { "name": "3", "type": "int" }
+            ],
+            "returnType": { "name": "Return Type", "type": "boolean" },
+            "description": "Customize the clients 'leave server' dialog box. Parameters are: ManialinkPage, SendToServer url '#qjoin=login@title', ProposeAddToFavorites and DelayQuitButton (in milliseconds).",
+            "deprecated": false,
+            "authorization": "Admin"
+        },
+        {
+            "name": "SendToServerAfterMatchEnd",
+            "params": [{ "name": "0", "type": "string" }],
+            "returnType": { "name": "Return Type", "type": "boolean" },
+            "description": "Prior to loading next map, execute SendToServer url '#qjoin=login@title'.",
+            "deprecated": false,
+            "authorization": "Admin"
+        },
+        {
+            "name": "KeepPlayerSlots",
+            "params": [{ "name": "0", "type": "boolean" }],
+            "returnType": { "name": "Return Type", "type": "boolean" },
+            "description": "Set whether, when a player is switching to spectator, the server should still consider him a player and keep his player slot, or not.",
+            "deprecated": false,
+            "authorization": "Admin"
+        },
+        {
+            "name": "IsKeepingPlayerSlots",
+            "params": [],
+            "returnType": { "name": "Return Type", "type": "boolean" },
+            "description": "Get whether the server keeps player slots when switching to spectator.",
+            "deprecated": false,
+            "authorization": ""
+        },
+        {
+            "name": "AllowMapDownload",
+            "params": [{ "name": "0", "type": "boolean" }],
+            "returnType": { "name": "Return Type", "type": "boolean" },
+            "description": "Allow clients to download maps from the server.",
+            "deprecated": false,
+            "authorization": "Admin"
+        },
+        {
+            "name": "IsMapDownloadAllowed",
+            "params": [],
+            "returnType": { "name": "Return Type", "type": "boolean" },
+            "description": "Returns if clients can download maps from the server.",
+            "deprecated": false,
+            "authorization": ""
+        },
+        {
+            "name": "AllowChallengeDownload",
+            "params": [{ "name": "0", "type": "boolean" }],
+            "returnType": { "name": "Return Type", "type": "boolean" },
+            "description": "(deprecated)",
+            "deprecated": true,
+            "authorization": ""
+        },
+        {
+            "name": "IsChallengeDownloadAllowed",
+            "params": [],
+            "returnType": { "name": "Return Type", "type": "boolean" },
+            "description": "(deprecated)",
+            "deprecated": true,
+            "authorization": ""
+        },
+        {
+            "name": "GameDataDirectory",
+            "params": [],
+            "returnType": { "name": "Return Type", "type": "string" },
+            "description": "Returns the path of the game datas directory.",
+            "deprecated": false,
+            "authorization": "Admin"
+        },
+        {
+            "name": "GetMapsDirectory",
+            "params": [],
+            "returnType": { "name": "Return Type", "type": "string" },
+            "description": "Returns the path of the maps directory.",
+            "deprecated": false,
+            "authorization": "Admin"
+        },
+        {
+            "name": "GetTracksDirectory",
+            "params": [],
+            "returnType": { "name": "Return Type", "type": "string" },
+            "description": "(deprecated)",
+            "deprecated": true,
+            "authorization": ""
+        },
+        {
+            "name": "GetSkinsDirectory",
+            "params": [],
+            "returnType": { "name": "Return Type", "type": "string" },
+            "description": "Returns the path of the skins directory.",
+            "deprecated": false,
+            "authorization": "Admin"
+        },
+        {
+            "name": "SetTeamInfo",
+            "params": [
+                { "name": "0", "type": "string" },
+                { "name": "1", "type": "double" },
+                { "name": "2", "type": "string" },
+                { "name": "3", "type": "string" },
+                { "name": "4", "type": "double" },
+                { "name": "5", "type": "string" },
+                { "name": "6", "type": "string" },
+                { "name": "7", "type": "double" },
+                { "name": "8", "type": "string" }
+            ],
+            "returnType": { "name": "Return Type", "type": "boolean" },
+            "description": "Set Team names and colors (deprecated).",
+            "deprecated": true,
+            "authorization": "Admin"
+        },
+        {
+            "name": "GetTeamInfo",
+            "params": [{ "name": "0", "type": "int" }],
+            "returnType": { "name": "Return Type", "type": "struct", "fields": [{ "name": "1", "type": "unknown" }] },
+            "description": "Return Team info for a given clan (0 = no clan, 1, 2). The structure contains: Name, ZonePath, City, EmblemUrl, HuePrimary, HueSecondary, RGB, ClubLinkUrl.",
+            "deprecated": false,
+            "authorization": "Admin"
+        },
+        {
+            "name": "SetForcedClubLinks",
+            "params": [{ "name": "0", "type": "string" }, { "name": "1", "type": "string" }],
+            "returnType": { "name": "Return Type", "type": "boolean" },
+            "description": "Set the clublinks to use for the two clans.",
+            "deprecated": false,
+            "authorization": "Admin"
+        },
+        {
+            "name": "GetForcedClubLinks",
+            "params": [],
+            "returnType": { "name": "Return Type", "type": "struct", "fields": [{ "name": "1", "type": "unknown" }] },
+            "description": "Get the forced clublinks.",
+            "deprecated": false,
+            "authorization": ""
+        },
+        {
+            "name": "ConnectFakePlayer",
+            "params": [],
+            "returnType": { "name": "Return Type", "type": "string" },
+            "description": "(debug tool) Connect a fake player to the server and returns the login.",
+            "deprecated": false,
+            "authorization": "Admin"
+        },
+        {
+            "name": "DisconnectFakePlayer",
+            "params": [{ "name": "0", "type": "string" }],
+            "returnType": { "name": "Return Type", "type": "boolean" },
+            "description": "(debug tool) Disconnect a fake player, or all the fake players if login is '*'.",
+            "deprecated": false,
+            "authorization": "Admin"
+        },
+        {
+            "name": "GetDemoTokenInfosForPlayer",
+            "params": [{ "name": "0", "type": "string" }],
+            "returnType": { "name": "Return Type", "type": "struct", "fields": [{ "name": "1", "type": "unknown" }] },
+            "description": "Returns the token infos for a player. The returned structure is { TokenCost, CanPayToken }.",
+            "deprecated": false,
+            "authorization": ""
+        },
+        {
+            "name": "DisableHorns",
+            "params": [{ "name": "0", "type": "boolean" }],
+            "returnType": { "name": "Return Type", "type": "boolean" },
+            "description": "Disable player horns.",
+            "deprecated": false,
+            "authorization": "Admin"
+        },
+        {
+            "name": "AreHornsDisabled",
+            "params": [],
+            "returnType": { "name": "Return Type", "type": "boolean" },
+            "description": "Returns whether the horns are disabled.",
+            "deprecated": false,
+            "authorization": ""
+        },
+        {
+            "name": "DisableServiceAnnounces",
+            "params": [{ "name": "0", "type": "boolean" }],
+            "returnType": { "name": "Return Type", "type": "boolean" },
+            "description": "Disable the automatic mesages when a player connects/disconnects from the server.",
+            "deprecated": false,
+            "authorization": "Admin"
+        },
+        {
+            "name": "AreServiceAnnouncesDisabled",
+            "params": [],
+            "returnType": { "name": "Return Type", "type": "boolean" },
+            "description": "Returns whether the automatic mesages are disabled.",
+            "deprecated": false,
+            "authorization": ""
+        },
+        {
+            "name": "DisableProfileSkins",
+            "params": [{ "name": "0", "type": "boolean" }],
+            "returnType": { "name": "Return Type", "type": "boolean" },
+            "description": "Ignore players profile skin customisation.",
+            "deprecated": false,
+            "authorization": "Admin"
+        },
+        {
+            "name": "AreProfileSkinsDisabled",
+            "params": [],
+            "returnType": { "name": "Return Type", "type": "boolean" },
+            "description": "Returns whether the custom skins are disabled.",
+            "deprecated": false,
+            "authorization": ""
+        },
+        {
+            "name": "AutoSaveReplays",
+            "params": [{ "name": "0", "type": "boolean" }],
+            "returnType": { "name": "Return Type", "type": "boolean" },
+            "description": "Enable the autosaving of all replays (vizualisable replays with all players, but not validable) on the server.",
+            "deprecated": false,
+            "authorization": "SuperAdmin"
+        },
+        {
+            "name": "IsAutoSaveReplaysEnabled",
+            "params": [],
+            "returnType": { "name": "Return Type", "type": "boolean" },
+            "description": "Returns if autosaving of all replays is enabled on the server.",
+            "deprecated": false,
+            "authorization": ""
+        },
+        {
+            "name": "SaveCurrentReplay",
+            "params": [{ "name": "0", "type": "string" }],
+            "returnType": { "name": "Return Type", "type": "boolean" },
+            "description": "Saves the current replay (vizualisable replays with all players, but not validable). Pass a filename, or '' for an automatic filename.",
+            "deprecated": false,
+            "authorization": "Admin"
+        },
+        {
+            "name": "SaveBestGhostsReplay",
+            "params": [{ "name": "0", "type": "string" }, { "name": "1", "type": "string" }],
+            "returnType": { "name": "Return Type", "type": "boolean" },
+            "description": "Saves a replay with the ghost of all the players' best race. First parameter is the login of the player (or '' for all players), Second parameter is the filename, or '' for an automatic filename.",
+            "deprecated": false,
+            "authorization": "Admin"
+        },
+        {
+            "name": "GetValidationReplay",
+            "params": [{ "name": "0", "type": "string" }],
+            "returnType": { "name": "Return Type", "type": "base64" },
+            "description": "Returns a replay containing the data needed to validate the current best time of the player. The parameter is the login of the player.",
+            "deprecated": false,
+            "authorization": ""
+        },
+        {
+            "name": "SetServerOptions",
+            "params": [{ "name": "0", "type": "struct", "fields": [{ "name": "1", "type": "unknown" }] }],
+            "returnType": { "name": "Return Type", "type": "boolean" },
+            "description": "Set new server options using the struct passed as parameters. This struct must contain the following fields : Name, Comment, Password, PasswordForSpectator, NextCallVoteTimeOut, CallVoteRatio. May additionally include any of the other members listed in RpcGetServerOptions. A change of NextMaxPlayers, NextMaxSpectators, NextCallVoteTimeOut requires a map restart to be taken into account.",
+            "deprecated": false,
+            "authorization": "Admin"
+        },
+        {
+            "name": "GetServerOptions",
+            "params": [{ "name": "0", "type": "int" }],
+            "returnType": { "name": "Return Type", "type": "struct", "fields": [{ "name": "1", "type": "unknown" }] },
+            "description": "Optional parameter for compatibility: struct version (0 = united, 1 = forever). Returns a struct containing the server options: Name, Comment, Password, PasswordForSpectator, CurrentMaxPlayers, NextMaxPlayers, CurrentMaxSpectators, NextMaxSpectators, IsP2PUpload, IsP2PDownload, CurrentLadderMode, NextLadderMode, CurrentVehicleNetQuality, NextVehicleNetQuality, CurrentCallVoteTimeOut, NextCallVoteTimeOut, CallVoteRatio, AllowChallengeDownload and AutoSaveReplays, and additionally for forever: RefereePassword, RefereeMode, AutoSaveValidationReplays, HideServer, CurrentUseChangingValidationSeed, NextUseChangingValidationSeed.",
+            "deprecated": false,
+            "authorization": ""
+        },
+        {
+            "name": "SetForcedTeams",
+            "params": [{ "name": "0", "type": "boolean" }],
+            "returnType": { "name": "Return Type", "type": "boolean" },
+            "description": "Set whether the players can choose their side or if the teams are forced by the server (using ForcePlayerTeam()).",
+            "deprecated": false,
+            "authorization": "Admin"
+        },
+        {
+            "name": "GetForcedTeams",
+            "params": [],
+            "returnType": { "name": "Return Type", "type": "boolean" },
+            "description": "Returns whether the players can choose their side or if the teams are forced by the server.",
+            "deprecated": false,
+            "authorization": ""
+        },
+        {
+            "name": "SetForcedMods",
+            "params": [
+                { "name": "0", "type": "boolean" },
+                { "name": "1", "type": "array", "fields": [{ "name": "1", "type": "unknown" }] }
+            ],
+            "returnType": { "name": "Return Type", "type": "boolean" },
+            "description": "Set the mods to apply on the clients. Parameters: Override, if true even the maps with a mod will be overridden by the server setting; and Mods, an array of structures [{EnvName, Url}, ...]. Requires a map restart to be taken into account.",
+            "deprecated": false,
+            "authorization": "Admin"
+        },
+        {
+            "name": "GetForcedMods",
+            "params": [],
+            "returnType": { "name": "Return Type", "type": "struct", "fields": [{ "name": "1", "type": "unknown" }] },
+            "description": "Get the mods settings.",
+            "deprecated": false,
+            "authorization": ""
+        },
+        {
+            "name": "SetForcedMusic",
+            "params": [{ "name": "0", "type": "boolean" }, { "name": "1", "type": "string" }],
+            "returnType": { "name": "Return Type", "type": "boolean" },
+            "description": "Set the music to play on the clients. Parameters: Override, if true even the maps with a custom music will be overridden by the server setting, and a UrlOrFileName for the music. Requires a map restart to be taken into account.",
+            "deprecated": false,
+            "authorization": "Admin"
+        },
+        {
+            "name": "GetForcedMusic",
+            "params": [],
+            "returnType": { "name": "Return Type", "type": "struct", "fields": [{ "name": "1", "type": "unknown" }] },
+            "description": "Get the music setting.",
+            "deprecated": false,
+            "authorization": ""
+        },
+        {
+            "name": "SetForcedSkins",
+            "params": [{ "name": "0", "type": "array", "fields": [{ "name": "1", "type": "unknown" }] }],
+            "returnType": { "name": "Return Type", "type": "boolean" },
+            "description": "Defines a list of remappings for player skins. It expects a list of structs Orig, Name, Checksum, Url.  Orig is the name of the skin to remap, or '*' for any other. Name, Checksum, Url define the skin to use. (They are optional, you may set value '' for any of those. All 3 null means same as Orig). Will only affect players connecting after the value is set.",
+            "deprecated": false,
+            "authorization": "Admin"
+        },
+        {
+            "name": "GetForcedSkins",
+            "params": [],
+            "returnType": { "name": "Return Type", "type": "array", "fields": [{ "name": "1", "type": "unknown" }] },
+            "description": "Get the current forced skins.",
+            "deprecated": false,
+            "authorization": ""
+        },
+        {
+            "name": "GetLastConnectionErrorMessage",
+            "params": [],
+            "returnType": { "name": "Return Type", "type": "string" },
+            "description": "Returns the last error message for an internet connection.",
+            "deprecated": false,
+            "authorization": "Admin"
+        },
+        {
+            "name": "GetModeScriptText",
+            "params": [],
+            "returnType": { "name": "Return Type", "type": "string" },
+            "description": "Get the current mode script.",
+            "deprecated": false,
+            "authorization": ""
+        },
+        {
+            "name": "SetModeScriptText",
+            "params": [{ "name": "0", "type": "string" }],
+            "returnType": { "name": "Return Type", "type": "boolean" },
+            "description": "Set the mode script and restart.",
+            "deprecated": false,
+            "authorization": "Admin"
+        },
+        {
+            "name": "GetModeScriptInfo",
+            "params": [],
+            "returnType": { "name": "Return Type", "type": "struct", "fields": [{ "name": "1", "type": "unknown" }] },
+            "description": "Returns the description of the current mode script, as a structure containing: Name, CompatibleTypes, Description, Version and the settings available.",
+            "deprecated": false,
+            "authorization": ""
+        },
+        {
+            "name": "GetModeScriptSettings",
+            "params": [],
+            "returnType": { "name": "Return Type", "type": "struct", "fields": [{ "name": "1", "type": "unknown" }] },
+            "description": "Returns the current settings of the mode script.",
+            "deprecated": false,
+            "authorization": ""
+        },
+        {
+            "name": "SetModeScriptSettings",
+            "params": [{ "name": "0", "type": "struct", "fields": [{ "name": "1", "type": "unknown" }] }],
+            "returnType": { "name": "Return Type", "type": "boolean" },
+            "description": "Change the settings of the mode script.",
+            "deprecated": false,
+            "authorization": "Admin"
+        },
+        {
+            "name": "SendModeScriptCommands",
+            "params": [{ "name": "0", "type": "struct", "fields": [{ "name": "1", "type": "unknown" }] }],
+            "returnType": { "name": "Return Type", "type": "boolean" },
+            "description": "Send commands to the mode script.",
+            "deprecated": false,
+            "authorization": "Admin"
+        },
+        {
+            "name": "SetModeScriptSettingsAndCommands",
+            "params": [
+                { "name": "0", "type": "struct", "fields": [{ "name": "1", "type": "unknown" }] },
+                { "name": "1", "type": "struct", "fields": [{ "name": "1", "type": "unknown" }] }
+            ],
+            "returnType": { "name": "Return Type", "type": "boolean" },
+            "description": "Change the settings and send commands to the mode script.",
+            "deprecated": false,
+            "authorization": "Admin"
+        },
+        {
+            "name": "GetModeScriptVariables",
+            "params": [],
+            "returnType": { "name": "Return Type", "type": "struct", "fields": [{ "name": "1", "type": "unknown" }] },
+            "description": "Returns the current xml-rpc variables of the mode script.",
+            "deprecated": false,
+            "authorization": ""
+        },
+        {
+            "name": "SetModeScriptVariables",
+            "params": [{ "name": "0", "type": "struct", "fields": [{ "name": "1", "type": "unknown" }] }],
+            "returnType": { "name": "Return Type", "type": "boolean" },
+            "description": "Set the xml-rpc variables of the mode script.",
+            "deprecated": false,
+            "authorization": "Admin"
+        },
+        {
+            "name": "TriggerModeScriptEvent",
+            "params": [{ "name": "0", "type": "string" }, { "name": "1", "type": "string" }],
+            "returnType": { "name": "Return Type", "type": "boolean" },
+            "description": "Send an event to the mode script.",
+            "deprecated": false,
+            "authorization": "Admin"
+        },
+        {
+            "name": "TriggerModeScriptEventArray",
+            "params": [
+                { "name": "0", "type": "string" },
+                { "name": "1", "type": "array", "fields": [{ "name": "1", "type": "unknown" }] }
+            ],
+            "returnType": { "name": "Return Type", "type": "boolean" },
+            "description": "Send an event to the mode script.",
+            "deprecated": false,
+            "authorization": "Admin"
+        },
+        {
+            "name": "SetServerPlugin",
+            "params": [
+                { "name": "0", "type": "boolean" },
+                { "name": "1", "type": "string" },
+                { "name": "2", "type": "struct", "fields": [{ "name": "1", "type": "unknown" }] }
+            ],
+            "returnType": { "name": "Return Type", "type": "boolean" },
+            "description": "Set the ServerPlugin settings. Parameters: ForceReload to reload from disk, optionally: Name the filename relative to Scripts/ directory, Settings the script #Settings to apply.",
+            "deprecated": false,
+            "authorization": "Admin"
+        },
+        {
+            "name": "GetServerPlugin",
+            "params": [],
+            "returnType": { "name": "Return Type", "type": "struct", "fields": [{ "name": "1", "type": "unknown" }] },
+            "description": "Get the ServerPlugin current settings.",
+            "deprecated": false,
+            "authorization": ""
+        },
+        {
+            "name": "GetServerPluginVariables",
+            "params": [],
+            "returnType": { "name": "Return Type", "type": "struct", "fields": [{ "name": "1", "type": "unknown" }] },
+            "description": "Returns the current xml-rpc variables of the server script.",
+            "deprecated": false,
+            "authorization": ""
+        },
+        {
+            "name": "SetServerPluginVariables",
+            "params": [{ "name": "0", "type": "struct", "fields": [{ "name": "1", "type": "unknown" }] }],
+            "returnType": { "name": "Return Type", "type": "boolean" },
+            "description": "Set the xml-rpc variables of the server script.",
+            "deprecated": false,
+            "authorization": "Admin"
+        },
+        {
+            "name": "TriggerServerPluginEvent",
+            "params": [{ "name": "0", "type": "string" }, { "name": "1", "type": "string" }],
+            "returnType": { "name": "Return Type", "type": "boolean" },
+            "description": "Send an event to the server script.",
+            "deprecated": false,
+            "authorization": "Admin"
+        },
+        {
+            "name": "TriggerServerPluginEventArray",
+            "params": [
+                { "name": "0", "type": "string" },
+                { "name": "1", "type": "array", "fields": [{ "name": "1", "type": "unknown" }] }
+            ],
+            "returnType": { "name": "Return Type", "type": "boolean" },
+            "description": "Send an event to the server script.",
+            "deprecated": false,
+            "authorization": "Admin"
+        },
+        {
+            "name": "GetScriptCloudVariables",
+            "params": [{ "name": "0", "type": "string" }, { "name": "1", "type": "string" }],
+            "returnType": { "name": "Return Type", "type": "struct", "fields": [{ "name": "1", "type": "unknown" }] },
+            "description": "Get the script cloud variables of given object.",
+            "deprecated": false,
+            "authorization": "Admin"
+        },
+        {
+            "name": "SetScriptCloudVariables",
+            "params": [
+                { "name": "0", "type": "string" },
+                { "name": "1", "type": "string" },
+                { "name": "2", "type": "struct", "fields": [{ "name": "1", "type": "unknown" }] }
+            ],
+            "returnType": { "name": "Return Type", "type": "boolean" },
+            "description": "Set the script cloud variables of given object.",
+            "deprecated": false,
+            "authorization": "Admin"
+        },
+        {
+            "name": "RestartMap",
+            "params": [],
+            "returnType": { "name": "Return Type", "type": "boolean" },
+            "description": "Restarts the map, with an optional boolean parameter DontClearCupScores (only available in cup mode).",
+            "deprecated": false,
+            "authorization": "Admin"
+        },
+        {
+            "name": "NextMap",
+            "params": [],
+            "returnType": { "name": "Return Type", "type": "boolean" },
+            "description": "Switch to next map, with an optional boolean parameter DontClearCupScores (only available in cup mode).",
+            "deprecated": false,
+            "authorization": "Admin"
+        },
+        {
+            "name": "AutoTeamBalance",
+            "params": [],
+            "returnType": { "name": "Return Type", "type": "boolean" },
+            "description": "Attempt to balance teams.",
+            "deprecated": false,
+            "authorization": "Admin"
+        },
+        {
+            "name": "ChallengeRestart",
+            "params": [],
+            "returnType": { "name": "Return Type", "type": "boolean" },
+            "description": "(deprecated)",
+            "deprecated": true,
+            "authorization": ""
+        },
+        {
+            "name": "RestartChallenge",
+            "params": [],
+            "returnType": { "name": "Return Type", "type": "boolean" },
+            "description": "(deprecated)",
+            "deprecated": true,
+            "authorization": ""
+        },
+        {
+            "name": "NextChallenge",
+            "params": [],
+            "returnType": { "name": "Return Type", "type": "boolean" },
+            "description": "(deprecated)",
+            "deprecated": true,
+            "authorization": ""
+        },
+        {
+            "name": "StopServer",
+            "params": [],
+            "returnType": { "name": "Return Type", "type": "boolean" },
+            "description": "Stop the server.",
+            "deprecated": false,
+            "authorization": "SuperAdmin"
+        },
+        {
+            "name": "SetGameInfos",
+            "params": [{ "name": "0", "type": "struct", "fields": [{ "name": "1", "type": "unknown" }] }],
+            "returnType": { "name": "Return Type", "type": "boolean" },
+            "description": "Set new game settings using the struct passed as parameters. This struct must contain the following fields : GameMode, ChatTime, RoundsPointsLimit, RoundsUseNewRules, RoundsForcedLaps, TimeAttackLimit, TimeAttackSynchStartPeriod, TeamPointsLimit, TeamMaxPoints, TeamUseNewRules, LapsNbLaps, LapsTimeLimit, FinishTimeout, and optionally: AllWarmUpDuration, DisableRespawn, ForceShowAllOpponents, RoundsPointsLimitNewRules, TeamPointsLimitNewRules, CupPointsLimit, CupRoundsPerChallenge, CupNbWinners, CupWarmUpDuration. Requires a map restart to be taken into account.",
+            "deprecated": false,
+            "authorization": "Admin"
+        },
+        {
+            "name": "GetCurrentGameInfo",
+            "params": [{ "name": "0", "type": "int" }],
+            "returnType": { "name": "Return Type", "type": "struct", "fields": [{ "name": "1", "type": "unknown" }] },
+            "description": "Optional parameter for compatibility: struct version (0 = united, 1 = forever). Returns a struct containing the current game settings, ie: GameMode, ChatTime, NbChallenge, RoundsPointsLimit, RoundsUseNewRules, RoundsForcedLaps, TimeAttackLimit, TimeAttackSynchStartPeriod, TeamPointsLimit, TeamMaxPoints, TeamUseNewRules, LapsNbLaps, LapsTimeLimit, FinishTimeout, and additionally for version 1: AllWarmUpDuration, DisableRespawn, ForceShowAllOpponents, RoundsPointsLimitNewRules, TeamPointsLimitNewRules, CupPointsLimit, CupRoundsPerChallenge, CupNbWinners, CupWarmUpDuration.",
+            "deprecated": false,
+            "authorization": ""
+        },
+        {
+            "name": "GetNextGameInfo",
+            "params": [{ "name": "0", "type": "int" }],
+            "returnType": { "name": "Return Type", "type": "struct", "fields": [{ "name": "1", "type": "unknown" }] },
+            "description": "Optional parameter for compatibility: struct version (0 = united, 1 = forever). Returns a struct containing the game settings for the next map, ie: GameMode, ChatTime, NbChallenge, RoundsPointsLimit, RoundsUseNewRules, RoundsForcedLaps, TimeAttackLimit, TimeAttackSynchStartPeriod, TeamPointsLimit, TeamMaxPoints, TeamUseNewRules, LapsNbLaps, LapsTimeLimit, FinishTimeout, and additionally for version 1: AllWarmUpDuration, DisableRespawn, ForceShowAllOpponents, RoundsPointsLimitNewRules, TeamPointsLimitNewRules, CupPointsLimit, CupRoundsPerChallenge, CupNbWinners, CupWarmUpDuration.",
+            "deprecated": false,
+            "authorization": ""
+        },
+        {
+            "name": "GetGameInfos",
+            "params": [{ "name": "0", "type": "int" }],
+            "returnType": { "name": "Return Type", "type": "struct", "fields": [{ "name": "1", "type": "unknown" }] },
+            "description": "Optional parameter for compatibility: struct version (0 = united, 1 = forever). Returns a struct containing two other structures, the first containing the current game settings and the second the game settings for next map. The first structure is named CurrentGameInfos and the second NextGameInfos.",
+            "deprecated": false,
+            "authorization": ""
+        },
+        {
+            "name": "SetForceShowAllOpponents",
+            "params": [{ "name": "0", "type": "int" }],
+            "returnType": { "name": "Return Type", "type": "boolean" },
+            "description": "Set whether to override the players preferences and always display all opponents (0=no override, 1=show all, other value=minimum number of opponents). Requires a map restart to be taken into account.",
+            "deprecated": false,
+            "authorization": "Admin"
+        },
+        {
+            "name": "GetForceShowAllOpponents",
+            "params": [],
+            "returnType": { "name": "Return Type", "type": "struct", "fields": [{ "name": "1", "type": "unknown" }] },
+            "description": "Get whether players are forced to show all opponents. The struct returned contains two fields CurrentValue and NextValue.",
+            "deprecated": false,
+            "authorization": ""
+        },
+        {
+            "name": "SetScriptName",
+            "params": [{ "name": "0", "type": "string" }],
+            "returnType": { "name": "Return Type", "type": "boolean" },
+            "description": "Set a new mode script name for script mode. Requires a map restart to be taken into account.",
+            "deprecated": false,
+            "authorization": "Admin"
+        },
+        {
+            "name": "GetScriptName",
+            "params": [],
+            "returnType": { "name": "Return Type", "type": "struct", "fields": [{ "name": "1", "type": "unknown" }] },
+            "description": "Get the current and next mode script name for script mode. The struct returned contains two fields CurrentValue and NextValue.",
+            "deprecated": false,
+            "authorization": ""
+        },
+        {
+            "name": "SetCupRoundsPerChallenge",
+            "params": [{ "name": "0", "type": "int" }],
+            "returnType": { "name": "Return Type", "type": "boolean" },
+            "description": "(deprecated)",
+            "deprecated": true,
+            "authorization": ""
+        },
+        {
+            "name": "GetCupRoundsPerChallenge",
+            "params": [],
+            "returnType": { "name": "Return Type", "type": "struct", "fields": [{ "name": "1", "type": "unknown" }] },
+            "description": "(deprecated)",
+            "deprecated": true,
+            "authorization": ""
+        },
+        {
+            "name": "GetCurrentMapIndex",
+            "params": [],
+            "returnType": { "name": "Return Type", "type": "int" },
+            "description": "Returns the current map index in the selection, or -1 if the map is no longer in the selection.",
+            "deprecated": false,
+            "authorization": ""
+        },
+        {
+            "name": "GetNextMapIndex",
+            "params": [],
+            "returnType": { "name": "Return Type", "type": "int" },
+            "description": "Returns the map index in the selection that will be played next (unless the current one is restarted...)",
+            "deprecated": false,
+            "authorization": ""
+        },
+        {
+            "name": "SetNextMapIndex",
+            "params": [{ "name": "0", "type": "int" }],
+            "returnType": { "name": "Return Type", "type": "boolean" },
+            "description": "Sets the map index in the selection that will be played next (unless the current one is restarted...)",
+            "deprecated": false,
+            "authorization": ""
+        },
+        {
+            "name": "SetNextMapIdent",
+            "params": [{ "name": "0", "type": "string" }],
+            "returnType": { "name": "Return Type", "type": "boolean" },
+            "description": "Sets the map in the selection that will be played next (unless the current one is restarted...)",
+            "deprecated": false,
+            "authorization": ""
+        },
+        {
+            "name": "JumpToMapIndex",
+            "params": [{ "name": "0", "type": "int" }],
+            "returnType": { "name": "Return Type", "type": "boolean" },
+            "description": "Immediately jumps to the map designated by the index in the selection.",
+            "deprecated": false,
+            "authorization": ""
+        },
+        {
+            "name": "JumpToMapIdent",
+            "params": [{ "name": "0", "type": "string" }],
+            "returnType": { "name": "Return Type", "type": "boolean" },
+            "description": "Immediately jumps to the map designated by its identifier (it must be in the selection).",
+            "deprecated": false,
+            "authorization": ""
+        },
+        {
+            "name": "GetCurrentMapInfo",
+            "params": [],
+            "returnType": { "name": "Return Type", "type": "struct", "fields": [{ "name": "1", "type": "unknown" }] },
+            "description": "Returns a struct containing the infos for the current map. The struct contains the following fields : Name, UId, FileName, Author, AuthorNickname, Environnement, Mood, BronzeTime, SilverTime, GoldTime, AuthorTime, CopperPrice, LapRace, NbLaps, NbCheckpoints, MapType, MapStyle.",
+            "deprecated": false,
+            "authorization": ""
+        },
+        {
+            "name": "GetNextMapInfo",
+            "params": [],
+            "returnType": { "name": "Return Type", "type": "struct", "fields": [{ "name": "1", "type": "unknown" }] },
+            "description": "Returns a struct containing the infos for the next map. The struct contains the following fields : Name, UId, FileName, Author, AuthorNickname, Environnement, Mood, BronzeTime, SilverTime, GoldTime, AuthorTime, CopperPrice, LapRace, MapType, MapStyle. (NbLaps and NbCheckpoints are also present but always set to -1)",
+            "deprecated": false,
+            "authorization": ""
+        },
+        {
+            "name": "GetMapInfo",
+            "params": [{ "name": "0", "type": "string" }],
+            "returnType": { "name": "Return Type", "type": "struct", "fields": [{ "name": "1", "type": "unknown" }] },
+            "description": "Returns a struct containing the infos for the map with the specified filename. The struct contains the following fields : Name, UId, FileName, Author, AuthorNickname, Environnement, Mood, BronzeTime, SilverTime, GoldTime, AuthorTime, CopperPrice, LapRace, MapType, MapStyle. (NbLaps and NbCheckpoints are also present but always set to -1)",
+            "deprecated": false,
+            "authorization": ""
+        },
+        {
+            "name": "CheckMapForCurrentServerParams",
+            "params": [{ "name": "0", "type": "string" }],
+            "returnType": { "name": "Return Type", "type": "boolean" },
+            "description": "Returns a boolean if the map with the specified filename matches the current server settings. ",
+            "deprecated": false,
+            "authorization": ""
+        },
+        {
+            "name": "GetMapList",
+            "params": [{ "name": "0", "type": "int" }, { "name": "1", "type": "int" }],
+            "returnType": { "name": "Return Type", "type": "array", "fields": [{ "name": "1", "type": "unknown" }] },
+            "description": "Returns a list of maps among the current selection of the server. This method take two parameters. The first parameter specifies the maximum number of infos to be returned, and the second one the starting index in the selection. The list is an array of structures. Each structure contains the following fields : Name, UId, FileName, Environnement, Author, AuthorNickname, GoldTime, CopperPrice, MapType, MapStyle.",
+            "deprecated": false,
+            "authorization": ""
+        },
+        {
+            "name": "AddMap",
+            "params": [{ "name": "0", "type": "string" }],
+            "returnType": { "name": "Return Type", "type": "boolean" },
+            "description": "Add the map with the specified filename at the end of the current selection.",
+            "deprecated": false,
+            "authorization": "Admin"
+        },
+        {
+            "name": "AddMapList",
+            "params": [{ "name": "0", "type": "array", "fields": [{ "name": "1", "type": "unknown" }] }],
+            "returnType": { "name": "Return Type", "type": "int" },
+            "description": "Add the list of maps with the specified filenames at the end of the current selection. The list of maps to add is an array of strings.",
+            "deprecated": false,
+            "authorization": "Admin"
+        },
+        {
+            "name": "RemoveMap",
+            "params": [{ "name": "0", "type": "string" }],
+            "returnType": { "name": "Return Type", "type": "boolean" },
+            "description": "Remove the map with the specified filename from the current selection.",
+            "deprecated": false,
+            "authorization": "Admin"
+        },
+        {
+            "name": "RemoveMapList",
+            "params": [{ "name": "0", "type": "array", "fields": [{ "name": "1", "type": "unknown" }] }],
+            "returnType": { "name": "Return Type", "type": "int" },
+            "description": "Remove the list of maps with the specified filenames from the current selection. The list of maps to remove is an array of strings.",
+            "deprecated": false,
+            "authorization": "Admin"
+        },
+        {
+            "name": "InsertMap",
+            "params": [{ "name": "0", "type": "string" }],
+            "returnType": { "name": "Return Type", "type": "boolean" },
+            "description": "Insert the map with the specified filename after the current map.",
+            "deprecated": false,
+            "authorization": "Admin"
+        },
+        {
+            "name": "InsertMapList",
+            "params": [{ "name": "0", "type": "array", "fields": [{ "name": "1", "type": "unknown" }] }],
+            "returnType": { "name": "Return Type", "type": "int" },
+            "description": "Insert the list of maps with the specified filenames after the current map. The list of maps to insert is an array of strings.",
+            "deprecated": false,
+            "authorization": "Admin"
+        },
+        {
+            "name": "ChooseNextMap",
+            "params": [{ "name": "0", "type": "string" }],
+            "returnType": { "name": "Return Type", "type": "boolean" },
+            "description": "Set as next map the one with the specified filename, if it is present in the selection.",
+            "deprecated": false,
+            "authorization": "Admin"
+        },
+        {
+            "name": "ChooseNextMapList",
+            "params": [{ "name": "0", "type": "array", "fields": [{ "name": "1", "type": "unknown" }] }],
+            "returnType": { "name": "Return Type", "type": "int" },
+            "description": "Set as next maps the list of maps with the specified filenames, if they are present in the selection. The list of maps to choose is an array of strings.",
+            "deprecated": false,
+            "authorization": "Admin"
+        },
+        {
+            "name": "GetCurrentChallengeIndex",
+            "params": [],
+            "returnType": { "name": "Return Type", "type": "int" },
+            "description": "(deprecated)",
+            "deprecated": true,
+            "authorization": ""
+        },
+        {
+            "name": "GetNextChallengeIndex",
+            "params": [],
+            "returnType": { "name": "Return Type", "type": "int" },
+            "description": "(deprecated)",
+            "deprecated": true,
+            "authorization": ""
+        },
+        {
+            "name": "SetNextChallengeIndex",
+            "params": [{ "name": "0", "type": "int" }],
+            "returnType": { "name": "Return Type", "type": "boolean" },
+            "description": "(deprecated)",
+            "deprecated": true,
+            "authorization": ""
+        },
+        {
+            "name": "GetCurrentChallengeInfo",
+            "params": [],
+            "returnType": { "name": "Return Type", "type": "struct", "fields": [{ "name": "1", "type": "unknown" }] },
+            "description": "(deprecated)",
+            "deprecated": true,
+            "authorization": ""
+        },
+        {
+            "name": "GetNextChallengeInfo",
+            "params": [],
+            "returnType": { "name": "Return Type", "type": "struct", "fields": [{ "name": "1", "type": "unknown" }] },
+            "description": "(deprecated)",
+            "deprecated": true,
+            "authorization": ""
+        },
+        {
+            "name": "GetChallengeInfo",
+            "params": [{ "name": "0", "type": "string" }],
+            "returnType": { "name": "Return Type", "type": "struct", "fields": [{ "name": "1", "type": "unknown" }] },
+            "description": "(deprecated)",
+            "deprecated": true,
+            "authorization": ""
+        },
+        {
+            "name": "CheckChallengeForCurrentServerParams",
+            "params": [{ "name": "0", "type": "string" }],
+            "returnType": { "name": "Return Type", "type": "boolean" },
+            "description": "(deprecated)",
+            "deprecated": true,
+            "authorization": ""
+        },
+        {
+            "name": "GetChallengeList",
+            "params": [{ "name": "0", "type": "int" }, { "name": "1", "type": "int" }],
+            "returnType": { "name": "Return Type", "type": "array", "fields": [{ "name": "1", "type": "unknown" }] },
+            "description": "(deprecated)",
+            "deprecated": true,
+            "authorization": ""
+        },
+        {
+            "name": "AddChallenge",
+            "params": [{ "name": "0", "type": "string" }],
+            "returnType": { "name": "Return Type", "type": "boolean" },
+            "description": "(deprecated)",
+            "deprecated": true,
+            "authorization": ""
+        },
+        {
+            "name": "AddChallengeList",
+            "params": [{ "name": "0", "type": "array", "fields": [{ "name": "1", "type": "unknown" }] }],
+            "returnType": { "name": "Return Type", "type": "int" },
+            "description": "(deprecated)",
+            "deprecated": true,
+            "authorization": ""
+        },
+        {
+            "name": "RemoveChallenge",
+            "params": [{ "name": "0", "type": "string" }],
+            "returnType": { "name": "Return Type", "type": "boolean" },
+            "description": "(deprecated)",
+            "deprecated": true,
+            "authorization": ""
+        },
+        {
+            "name": "RemoveChallengeList",
+            "params": [{ "name": "0", "type": "array", "fields": [{ "name": "1", "type": "unknown" }] }],
+            "returnType": { "name": "Return Type", "type": "int" },
+            "description": "(deprecated)",
+            "deprecated": true,
+            "authorization": ""
+        },
+        {
+            "name": "InsertChallenge",
+            "params": [{ "name": "0", "type": "string" }],
+            "returnType": { "name": "Return Type", "type": "boolean" },
+            "description": "(deprecated)",
+            "deprecated": true,
+            "authorization": ""
+        },
+        {
+            "name": "InsertChallengeList",
+            "params": [{ "name": "0", "type": "array", "fields": [{ "name": "1", "type": "unknown" }] }],
+            "returnType": { "name": "Return Type", "type": "int" },
+            "description": "(deprecated)",
+            "deprecated": true,
+            "authorization": ""
+        },
+        {
+            "name": "ChooseNextChallenge",
+            "params": [{ "name": "0", "type": "string" }],
+            "returnType": { "name": "Return Type", "type": "boolean" },
+            "description": "(deprecated)",
+            "deprecated": true,
+            "authorization": ""
+        },
+        {
+            "name": "ChooseNextChallengeList",
+            "params": [{ "name": "0", "type": "array", "fields": [{ "name": "1", "type": "unknown" }] }],
+            "returnType": { "name": "Return Type", "type": "int" },
+            "description": "(deprecated)",
+            "deprecated": true,
+            "authorization": ""
+        },
+        {
+            "name": "LoadMatchSettings",
+            "params": [{ "name": "0", "type": "string" }],
+            "returnType": { "name": "Return Type", "type": "int" },
+            "description": "Set a list of maps defined in the playlist with the specified filename as the current selection of the server, and load the gameinfos from the same file.",
+            "deprecated": false,
+            "authorization": "Admin"
+        },
+        {
+            "name": "AppendPlaylistFromMatchSettings",
+            "params": [{ "name": "0", "type": "string" }],
+            "returnType": { "name": "Return Type", "type": "int" },
+            "description": "Add a list of maps defined in the playlist with the specified filename at the end of the current selection.",
+            "deprecated": false,
+            "authorization": "Admin"
+        },
+        {
+            "name": "SaveMatchSettings",
+            "params": [{ "name": "0", "type": "string" }],
+            "returnType": { "name": "Return Type", "type": "int" },
+            "description": "Save the current selection of map in the playlist with the specified filename, as well as the current gameinfos.",
+            "deprecated": false,
+            "authorization": "Admin"
+        },
+        {
+            "name": "InsertPlaylistFromMatchSettings",
+            "params": [{ "name": "0", "type": "string" }],
+            "returnType": { "name": "Return Type", "type": "int" },
+            "description": "Insert a list of maps defined in the playlist with the specified filename after the current map.",
+            "deprecated": false,
+            "authorization": "Admin"
+        },
+        {
+            "name": "GetPlayerList",
+            "params": [{ "name": "0", "type": "int" }, { "name": "1", "type": "int" }, { "name": "2", "type": "int" }],
+            "returnType": { "name": "Return Type", "type": "array", "fields": [{ "name": "1", "type": "unknown" }] },
+            "description": "Returns the list of players on the server. This method take two parameters. The first parameter specifies the maximum number of infos to be returned, and the second one the starting index in the list, an optional 3rd parameter is used for compatibility: struct version (0 = united, 1 = forever, 2 = forever, including the servers). The list is an array of PlayerInfo structures. Forever PlayerInfo struct is: Login, NickName, PlayerId, TeamId, SpectatorStatus, LadderRanking, and Flags.  LadderRanking is 0 when not in official mode,  Flags = ForceSpectator(0,1,2) + StereoDisplayMode * 1000 + IsManagedByAnOtherServer * 10000 + IsServer * 100000 + HasPlayerSlot * 1000000 + IsBroadcasting * 10000000 + HasJoinedGame * 100000000 SpectatorStatus = Spectator + TemporarySpectator * 10 + PureSpectator * 100 + AutoTarget * 1000 + CurrentTargetId * 10000",
+            "deprecated": false,
+            "authorization": ""
+        },
+        {
+            "name": "GetPlayerInfo",
+            "params": [{ "name": "0", "type": "string" }, { "name": "1", "type": "int" }],
+            "returnType": { "name": "Return Type", "type": "struct", "fields": [{ "name": "1", "type": "unknown" }] },
+            "description": "Returns a struct containing the infos on the player with the specified login, with an optional parameter for compatibility: struct version (0 = united, 1 = forever). The structure is identical to the ones from GetPlayerList. Forever PlayerInfo struct is: Login, NickName, PlayerId, TeamId, SpectatorStatus, LadderRanking, and Flags.  LadderRanking is 0 when not in official mode,  Flags = ForceSpectator(0,1,2) + StereoDisplayMode * 1000 + IsManagedByAnOtherServer * 10000 + IsServer * 100000 + HasPlayerSlot * 1000000 + IsBroadcasting * 10000000 + HasJoinedGame * 100000000 SpectatorStatus = Spectator + TemporarySpectator * 10 + PureSpectator * 100 + AutoTarget * 1000 + CurrentTargetId * 10000",
+            "deprecated": false,
+            "authorization": ""
+        },
+        {
+            "name": "GetDetailedPlayerInfo",
+            "params": [{ "name": "0", "type": "string" }],
+            "returnType": { "name": "Return Type", "type": "struct", "fields": [{ "name": "1", "type": "unknown" }] },
+            "description": "Returns a struct containing the infos on the player with the specified login. The structure contains the following fields : Login, NickName, PlayerId, TeamId, IPAddress, DownloadRate, UploadRate, Language, IsSpectator, IsInOfficialMode, a structure named Avatar, an array of structures named Skins, a structure named LadderStats, HoursSinceZoneInscription and OnlineRights (0: nations account, 3: united account). Each structure of the array Skins contains two fields Environnement and a struct PackDesc. Each structure PackDesc, as well as the struct Avatar, contains two fields FileName and Checksum.",
+            "deprecated": false,
+            "authorization": ""
+        },
+        {
+            "name": "GetMainServerPlayerInfo",
+            "params": [{ "name": "0", "type": "int" }],
+            "returnType": { "name": "Return Type", "type": "struct", "fields": [{ "name": "1", "type": "unknown" }] },
+            "description": "Returns a struct containing the player infos of the game server (ie: in case of a basic server, itself; in case of a relay server, the main server), with an optional parameter for compatibility: struct version (0 = united, 1 = forever). The structure is identical to the ones from GetPlayerList. Forever PlayerInfo struct is: Login, NickName, PlayerId, TeamId, SpectatorStatus, LadderRanking, and Flags.  LadderRanking is 0 when not in official mode,  Flags = ForceSpectator(0,1,2) + StereoDisplayMode * 1000 + IsManagedByAnOtherServer * 10000 + IsServer * 100000 + HasPlayerSlot * 1000000 + IsBroadcasting * 10000000 + HasJoinedGame * 100000000 SpectatorStatus = Spectator + TemporarySpectator * 10 + PureSpectator * 100 + AutoTarget * 1000 + CurrentTargetId * 10000",
+            "deprecated": false,
+            "authorization": ""
+        },
+        {
+            "name": "GetCurrentRanking",
+            "params": [{ "name": "0", "type": "int" }, { "name": "1", "type": "int" }],
+            "returnType": { "name": "Return Type", "type": "array", "fields": [{ "name": "1", "type": "unknown" }] },
+            "description": "Returns the current rankings for the race in progress. (In trackmania legacy team modes, the scores for the two teams are returned. In other modes, it's the individual players' scores) This method take two parameters. The first parameter specifies the maximum number of infos to be returned, and the second one the starting index in the ranking. The ranking returned is a list of structures. Each structure contains the following fields : Login, NickName, PlayerId and Rank. In addition, for legacy trackmania modes it also contains BestTime, Score, NbrLapsFinished, LadderScore, and an array BestCheckpoints that contains the checkpoint times for the best race.",
+            "deprecated": false,
+            "authorization": ""
+        },
+        {
+            "name": "GetCurrentRankingForLogin",
+            "params": [{ "name": "0", "type": "string" }],
+            "returnType": { "name": "Return Type", "type": "array", "fields": [{ "name": "1", "type": "unknown" }] },
+            "description": "Returns the current ranking for the race in progressof the player with the specified login (or list of comma-separated logins). The ranking returned is a list of structures. Each structure contains the following fields : Login, NickName, PlayerId and Rank. In addition, for legacy trackmania modes it also contains BestTime, Score, NbrLapsFinished, LadderScore, and an array BestCheckpoints that contains the checkpoint times for the best race.",
+            "deprecated": false,
+            "authorization": ""
+        },
+        {
+            "name": "GetCurrentWinnerTeam",
+            "params": [],
+            "returnType": { "name": "Return Type", "type": "int" },
+            "description": "Returns the current winning team for the race in progress. (-1: if not in team mode, or draw match)",
+            "deprecated": false,
+            "authorization": ""
+        },
+        {
+            "name": "ForceScores",
+            "params": [
+                { "name": "0", "type": "array", "fields": [{ "name": "1", "type": "unknown" }] },
+                { "name": "1", "type": "boolean" }
+            ],
+            "returnType": { "name": "Return Type", "type": "boolean" },
+            "description": "Force the scores of the current game. Only available in rounds and team mode. You have to pass an array of structs {int PlayerId, int Score}. And a boolean SilentMode - if true, the scores are silently updated, allowing an external controller to do its custom counting...",
+            "deprecated": false,
+            "authorization": "Admin"
+        },
+        {
+            "name": "ForcePlayerTeam",
+            "params": [{ "name": "0", "type": "string" }, { "name": "1", "type": "int" }],
+            "returnType": { "name": "Return Type", "type": "boolean" },
+            "description": "Force the team of the player. Only available in team mode. You have to pass the login and the team number (0 or 1).",
+            "deprecated": false,
+            "authorization": "Admin"
+        },
+        {
+            "name": "ForcePlayerTeamId",
+            "params": [{ "name": "0", "type": "int" }, { "name": "1", "type": "int" }],
+            "returnType": { "name": "Return Type", "type": "boolean" },
+            "description": "Force the team of the player. Only available in team mode. You have to pass the playerid and the team number (0 or 1).",
+            "deprecated": false,
+            "authorization": "Admin"
+        },
+        {
+            "name": "ForceSpectator",
+            "params": [{ "name": "0", "type": "string" }, { "name": "1", "type": "int" }],
+            "returnType": { "name": "Return Type", "type": "boolean" },
+            "description": "Force the spectating status of the player. You have to pass the login and the spectator mode (0: user selectable, 1: spectator, 2: player, 3: spectator but keep selectable).",
+            "deprecated": false,
+            "authorization": "Admin"
+        },
+        {
+            "name": "ForceSpectatorId",
+            "params": [{ "name": "0", "type": "int" }, { "name": "1", "type": "int" }],
+            "returnType": { "name": "Return Type", "type": "boolean" },
+            "description": "Force the spectating status of the player. You have to pass the playerid and the spectator mode (0: user selectable, 1: spectator, 2: player, 3: spectator but keep selectable).",
+            "deprecated": false,
+            "authorization": "Admin"
+        },
+        {
+            "name": "ForceSpectatorTarget",
+            "params": [
+                { "name": "0", "type": "string" },
+                { "name": "1", "type": "string" },
+                { "name": "2", "type": "int" }
+            ],
+            "returnType": { "name": "Return Type", "type": "boolean" },
+            "description": "Force spectators to look at a specific player. You have to pass the login of the spectator (or '' for all) and the login of the target (or '' for automatic), and an integer for the camera type to use (-1 = leave unchanged, 0 = replay, 1 = follow, 2 = free).",
+            "deprecated": false,
+            "authorization": "Admin"
+        },
+        {
+            "name": "ForceSpectatorTargetId",
+            "params": [{ "name": "0", "type": "int" }, { "name": "1", "type": "int" }, { "name": "2", "type": "int" }],
+            "returnType": { "name": "Return Type", "type": "boolean" },
+            "description": "Force spectators to look at a specific player. You have to pass the id of the spectator (or -1 for all) and the id of the target (or -1 for automatic), and an integer for the camera type to use (-1 = leave unchanged, 0 = replay, 1 = follow, 2 = free).",
+            "deprecated": false,
+            "authorization": "Admin"
+        },
+        {
+            "name": "SpectatorReleasePlayerSlot",
+            "params": [{ "name": "0", "type": "string" }],
+            "returnType": { "name": "Return Type", "type": "boolean" },
+            "description": "Pass the login of the spectator. A spectator that once was a player keeps his player slot, so that he can go back to race mode. Calling this function frees this slot for another player to connect.",
+            "deprecated": false,
+            "authorization": "Admin"
+        },
+        {
+            "name": "SpectatorReleasePlayerSlotId",
+            "params": [{ "name": "0", "type": "int" }],
+            "returnType": { "name": "Return Type", "type": "boolean" },
+            "description": "Pass the playerid of the spectator. A spectator that once was a player keeps his player slot, so that he can go back to race mode. Calling this function frees this slot for another player to connect.",
+            "deprecated": false,
+            "authorization": "Admin"
+        },
+        {
+            "name": "GetNetworkStats",
+            "params": [],
+            "returnType": { "name": "Return Type", "type": "struct", "fields": [{ "name": "1", "type": "unknown" }] },
+            "description": "Returns a struct containing the networks stats of the server. The structure contains the following fields : Uptime, NbrConnection, MeanConnectionTime, MeanNbrPlayer, RecvNetRate, SendNetRate, TotalReceivingSize, TotalSendingSize and an array of structures named PlayerNetInfos. Each structure of the array PlayerNetInfos contains the following fields : Login, IPAddress, LastTransferTime, DeltaBetweenTwoLastNetState, PacketLossRate.",
+            "deprecated": false,
+            "authorization": "SuperAdmin"
+        },
+        {
+            "name": "StartServerLan",
+            "params": [],
+            "returnType": { "name": "Return Type", "type": "boolean" },
+            "description": "Start a server on lan, using the current configuration.",
+            "deprecated": false,
+            "authorization": "SuperAdmin"
+        },
+        {
+            "name": "StartServerInternet",
+            "params": [],
+            "returnType": { "name": "Return Type", "type": "boolean" },
+            "description": "Start a server on internet, using the current configuration.",
+            "deprecated": false,
+            "authorization": "SuperAdmin"
+        }
+    ]
+}

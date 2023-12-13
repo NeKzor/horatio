@@ -44,4 +44,4 @@ jobs:
           docker compose up -d
 
       - name: Test
-        run: deno task test
+        run: sleep 5 && deno task test

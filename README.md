@@ -1,3 +1,5 @@
+[![Deno CI](https://github.com/NeKzor/horatio/actions/workflows/deno.yml/badge.svg)](https://github.com/NeKzor/horatio/actions/workflows/deno.yml)
+
 # Horatio
 
 Minimalistic server controller for Trackmania.

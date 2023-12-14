@@ -42,8 +42,8 @@ Minimalistic server controller for Trackmania.
 [pp-docs]: https://pypla.net
 [mc-docs]: https://maniacontrol.com/docs
 [h-source]: https://github.com/NeKzor/horatio
-[e2-source]: https://github.com/EvoEsports/EvoSC
-[e1-source]: https://github.com/EvoEsports/EvoSC-sharp
+[e2-source]: https://github.com/EvoEsports/EvoSC-sharp
+[e1-source]: https://github.com/EvoEsports/EvoSC
 [pp-source]: https://github.com/PyPlanet/PyPlanet
 [mc-source]: https://github.com/ManiaControl/ManiaControl
 

@@ -40,6 +40,9 @@ const config: Config = {
   ],
 
   themeConfig: {
+    colorMode: {
+      defaultMode: 'dark',
+    },
     image: 'img/docusaurus-social-card.jpg',
     navbar: {
       title: 'Horatio',

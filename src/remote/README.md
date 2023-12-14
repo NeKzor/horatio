@@ -1,18 +1,17 @@
 # Remote
 
-Convenient wrapper around the npm module `@evotm/gbxclient` for type-safety.
+Type-safe GBX-Remote 2 compatible client.
 
 ## Usage
 
 ### Connect and authenticate
 
 ```ts
-import { GbxClient } from 'npm:@evotm/gbxclient@1.4.1';
 import { Remote } from 'npm:@nekz/gbx-remote@0.1.0';
 
-const remote = new Remote(new GbxClient());
+using remote = new Remote('127.0.0.1.', 5_000);
 
-await remote.client.connect('127.0.0.1.', 5_000);
+await remote.connect();
 await remote.Authenticate('SuperAdmin', password);
 ```
 

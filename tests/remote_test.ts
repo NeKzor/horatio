@@ -2,15 +2,13 @@
 // SPDX-License-Identifier: MIT
 
 import 'https://deno.land/std@0.208.0/dotenv/load.ts';
-import { GbxClient } from 'npm:@evotm/gbxclient@1.4.1';
 import { Remote } from '../src/remote/mod.ts';
 import { assert, assertEquals } from 'https://deno.land/std@0.208.0/assert/mod.ts';
 
 Deno.test('Remote', async (t) => {
-    const remote = new Remote(new GbxClient());
+    using remote = new Remote(Deno.env.get('RPC_HOST')!, Number(Deno.env.get('RPC_PORT')!));
 
-    const result = await remote.client.connect(Deno.env.get('RPC_HOST')!, Number(Deno.env.get('RPC_PORT')!));
-    assertEquals(result, true, 'Connected to server');
+    await remote.connect();
 
     await t.step('Authenticate', async () => {
         const result = await remote.Authenticate(Deno.env.get('RPC_USER')!, Deno.env.get('RPC_PASS')!);
@@ -41,9 +39,8 @@ Deno.test('Remote', async (t) => {
         assert(Array.isArray(mapList));
         assertEquals(mapList.length, 5);
 
-        const [map] = mapList;
+        const map = mapList.at(0);
         assert(map);
-        assert(typeof map === 'object');
 
         assertEquals(map.UId, 'CMbUs4OzcDEwUcUUfOonUk4bit8');
         assertEquals(map.Name, 'Fall 2023 - 01');
@@ -57,7 +54,6 @@ Deno.test('Remote', async (t) => {
         assertEquals(map.MapStyle, '');
 
         assert(systemInfo);
-        assert(typeof systemInfo === 'object');
 
         assertEquals(systemInfo.PublishedIp, '127.0.0.1');
         assertEquals(systemInfo.Port, 2_350);
@@ -70,6 +66,4 @@ Deno.test('Remote', async (t) => {
         assertEquals(systemInfo.IsServer, true);
         assertEquals(systemInfo.IsDedicated, true);
     });
-
-    await remote.client.disconnect();
 });

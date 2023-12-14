@@ -766,7 +766,18 @@
         {
             "name": "GetSystemInfo",
             "params": [],
-            "returnType": { "name": "Return Type", "type": "struct", "fields": [{ "name": "1", "type": "unknown" }] },
+            "returnType": { "name": "Return Type", "type": "struct", "fields": [
+                { "name": "PublishedIp", "type": "string" },
+                { "name": "Port", "type": "int" },
+                { "name": "P2PPort", "type": "int" },
+                { "name": "TitleId", "type": "string" },
+                { "name": "ServerLogin", "type": "string" },
+                { "name": "ServerPlayerId", "type": "int" },
+                { "name": "ConnectionDownloadRate", "type": "int" },
+                { "name": "ConnectionUploadRate", "type": "int" },
+                { "name": "IsServer", "type": "boolean" },
+                { "name": "IsDedicated", "type": "boolean" }
+            ] },
             "description": "Get some system infos, including connection rates (in kbps).",
             "deprecated": false,
             "authorization": ""
@@ -1678,7 +1689,18 @@
         {
             "name": "GetMapList",
             "params": [{ "name": "0", "type": "int" }, { "name": "1", "type": "int" }],
-            "returnType": { "name": "Return Type", "type": "array", "fields": [{ "name": "1", "type": "unknown" }] },
+            "returnType": { "name": "Return Type", "type": "array", "fields": [
+                {"name": "UId", "type": "string"},
+                {"name": "Name", "type": "string"},
+                {"name": "FileName", "type": "string"},
+                {"name": "Environnement", "type": "string"},
+                {"name": "Author", "type": "string"},
+                {"name": "AuthorNickname", "type": "string"},
+                {"name": "GoldTime", "type": "int"},
+                {"name": "CopperPrice", "type": "int"},
+                {"name": "MapType", "type": "string"},
+                {"name": "MapStyle", "type": "string"}
+            ] },
             "description": "Returns a list of maps among the current selection of the server. This method take two parameters. The first parameter specifies the maximum number of infos to be returned, and the second one the starting index in the selection. The list is an array of structures. Each structure contains the following fields : Name, UId, FileName, Environnement, Author, AuthorNickname, GoldTime, CopperPrice, MapType, MapStyle.",
             "deprecated": false,
             "authorization": ""

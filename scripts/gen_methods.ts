@@ -2,11 +2,10 @@
 // SPDX-License-Identifier: MIT
 
 import 'https://deno.land/std@0.208.0/dotenv/load.ts';
-import { GbxClient } from 'npm:@evotm/gbxclient@1.4.1';
 import { Remote } from '../src/remote/mod.ts';
 
-const remote = new Remote(new GbxClient());
-await remote.client.connect(Deno.env.get('RPC_HOST')!, Number(Deno.env.get('RPC_PORT')!));
+using remote = new Remote(Deno.env.get('RPC_HOST')!, Number(Deno.env.get('RPC_PORT')!));
+await remote.connect();
 await remote.Authenticate(Deno.env.get('RPC_USER')!, Deno.env.get('RPC_PASS')!);
 
 const toType = (type: string, idx: number) => {
@@ -76,5 +75,3 @@ for (const name of rpcMethods as string[]) {
 }
 
 Deno.writeTextFileSync('methods.json', JSON.stringify({ methods }));
-
-await remote.client.disconnect();

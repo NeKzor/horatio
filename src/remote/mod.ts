@@ -1,27 +1,112 @@
 // Copyright (c) 2023, NeKz
 // SPDX-License-Identifier: MIT
 
-// deno-lint-ignore-file ban-types
+import * as XML from 'https://deno.land/x/xml@2.1.3/mod.ts';
+import { Base64, deserialize, Double, Integer, serialize } from './xml.ts';
 
-import { GbxClient } from 'npm:@evotm/gbxclient@1.4.1';
+// deno-lint-ignore-file ban-types
 
 export type RpcMethod<P = keyof Remote> = P extends string
     ? P extends Capitalize<P> ? P : P extends `system.${string}` ? P
     : never
     : never;
 
+const encoder = new TextEncoder();
+const decoder = new TextDecoder();
+
 export class Remote {
+    #connection: Deno.Conn | null = null;
+
     /**
      * Construct a new GBX remote object.
      * ```ts
-     * const remote = new Remote(new GbxClient());
-     * await remote.client.connect('127.0.0.1', 5_000);
+     * using remote = new Remote('127.0.0.1', 5_000);
+     * await remote.connect();
      * await remote.Authenticate(name, password);
+     * remote.close();
      * ```
      */
-    constructor(public client: GbxClient) {}
-    protected call<T>(name: RpcMethod, ...args: unknown[]) {
-        return this.client.call(name, ...args) as Promise<T>;
+    constructor(public readonly hostname: string, public readonly port: number) {}
+    async connect() {
+        this.#connection = await Deno.connect({
+            hostname: this.hostname,
+            port: this.port,
+        });
+
+        const length = new Uint8Array(4);
+        await this.#connection.read(length);
+
+        const view = new DataView(length.buffer);
+        const header = new Uint8Array(view.getUint32(0, true));
+        await this.#connection.read(header);
+
+        const protocol = decoder.decode(header);
+        if (protocol !== 'GBXRemote 2') {
+            throw new Error('Invalid header value. Expected "GBXRemote 2" protocol.');
+        }
+    }
+    close() {
+        this.#connection?.close();
+        this.#connection = null;
+    }
+    [Symbol.dispose]() {
+        this.close();
+    }
+    protected async call<T>(methodName: RpcMethod, ...params: unknown[]) {
+        if (!this.#connection) {
+            throw new Error('Not connected!');
+        }
+
+        const xmlParams = params.map((param) => {
+            const xml = serialize(param);
+            return xml !== undefined ? `<param><value>${xml}</value></param>` : '';
+        });
+
+        const xml = `<?xml version="1.0"?><methodCall><methodName>${methodName}</methodName><params>${
+            xmlParams.join('')
+        }</params></methodCall>`;
+
+        {
+            const payload = encoder.encode(xml);
+            const buffer = new Uint8Array(8 + payload.byteLength);
+            const view = new DataView(buffer.buffer);
+            const handle = 0x80000000 + 1;
+            view.setUint32(0, payload.byteLength, true);
+            view.setUint32(4, handle, true);
+            buffer.set(payload, 8);
+
+            const writer = this.#connection.writable.getWriter();
+            await writer.write(buffer);
+            writer.releaseLock();
+        }
+
+        {
+            const buffer = new Uint8Array(8);
+            await this.#connection.read(buffer);
+
+            const dv = new DataView(buffer.buffer);
+            const length = dv.getUint32(0, true);
+            const _handle = dv.getUint32(4, true);
+            const payload = new Uint8Array(length);
+            await this.#connection.read(payload);
+
+            const response = decoder.decode(payload);
+            const doc = XML.parse(response, {
+                emptyToNull: false,
+                reviveNumbers: false,
+                reviveBooleans: false,
+                reviver(options) {
+                    if (options.tag === 'boolean' && options.value?.toString()?.length) {
+                        return options.value === '1' ? true : false;
+                    }
+                    return options.value;
+                },
+                // deno-lint-ignore no-explicit-any
+            }) as any as { methodResponse: { params: { param: { value: any } } } };
+
+            const result = Object.values(doc.methodResponse.params.param.value).at(0);
+            return deserialize<T>(result);
+        }
     }
     /**
      * Call multiple methods at once.
@@ -35,22 +120,22 @@ export class Remote {
     async multiCall<T extends unknown[]>(
         calls: (remote: MultiCall) => Promise<[...T]>,
     ) {
-        const mc = new MultiCall(this.client);
+        const mc = new MultiCall(this.hostname, this.port);
         const res = await calls(mc);
-        return mc.client.multicall(mc.queue) as Promise<typeof res>;
+        return await this.call('system.multicall', mc.queue) as typeof res;
     }
     /**
      * Return an array of all available XML-RPC methods on this server.
      */
     'system.listMethods'() {
-        return this.call<unknown[]>('system.listMethods');
+        return this.call<system_listMethods_t[]>('system.listMethods');
     }
     /**
      * Given the name of a method, return an array of legal signatures. Each signature is an array of strings. The
      * first item of each signature is the return type, and any others items are parameter types.
      */
     'system.methodSignature'(a1: string) {
-        return this.call<unknown[]>('system.methodSignature', a1);
+        return this.call<system_methodSignature_t[]>('system.methodSignature', a1);
     }
     /**
      * Given the name of a method, return a help string.
@@ -64,8 +149,8 @@ export class Remote {
      * struct of the form {'faultCode': int, 'faultString': string}. This is useful when you need to make lots of small
      * calls without lots of round trips.
      */
-    'system.multicall'(a1: unknown[]) {
-        return this.call<unknown[]>('system.multicall', a1);
+    'system.multicall'(a1: system_multicall_t[]) {
+        return this.call<system_multicall_t[]>('system.multicall', a1);
     }
     /**
      * Allow user authentication by specifying a login and a password, to gain access to the set of functionalities
@@ -123,7 +208,7 @@ export class Remote {
      * for everybody, pure spectators included.
      */
     CallVoteEx(a1: string, a2: number, a3: number, a4: number) {
-        return this.call<boolean>('CallVoteEx', a1, a2, a3, a4);
+        return this.call<boolean>('CallVoteEx', a1, Double.from(a2), Integer.from(a3), Integer.from(a4));
     }
     /**
      * Used internally by game.
@@ -148,7 +233,7 @@ export class Remote {
      * into account.
      */
     SetCallVoteTimeOut(a1: number) {
-        return this.call<boolean>('SetCallVoteTimeOut', a1);
+        return this.call<boolean>('SetCallVoteTimeOut', Integer.from(a1));
     }
     /**
      * Get the current and next timeout for waiting for votes. The struct returned contains two fields 'CurrentValue'
@@ -161,7 +246,7 @@ export class Remote {
      * Set a new default ratio for passing a vote. Must lie between 0 and 1.
      */
     SetCallVoteRatio(a1: number) {
-        return this.call<boolean>('SetCallVoteRatio', a1);
+        return this.call<boolean>('SetCallVoteRatio', Double.from(a1));
     }
     /**
      * Get the current default ratio for passing a vote. This value lies between 0 and 1.
@@ -173,14 +258,14 @@ export class Remote {
      * Set the ratios list for passing specific votes. The parameter is an array of structs {string Command, double
      * Ratio}, ratio is in [0,1] or -1 for vote disabled.
      */
-    SetCallVoteRatios(a1: unknown[]) {
+    SetCallVoteRatios(a1: SetCallVoteRatios_t[]) {
         return this.call<boolean>('SetCallVoteRatios', a1);
     }
     /**
      * Get the current ratios for passing votes.
      */
     GetCallVoteRatios() {
-        return this.call<unknown[]>('GetCallVoteRatios');
+        return this.call<GetCallVoteRatios_t[]>('GetCallVoteRatios');
     }
     /**
      * Set the ratios list for passing specific votes, extended version with parameters matching. The parameters, a
@@ -189,14 +274,14 @@ export class Remote {
      * matched against the vote parameters to make more specific ratios, leave empty to match all votes for the
      * command.
      */
-    SetCallVoteRatiosEx(a1: boolean, a2: unknown[]) {
+    SetCallVoteRatiosEx(a1: boolean, a2: SetCallVoteRatiosEx_t[]) {
         return this.call<boolean>('SetCallVoteRatiosEx', a1, a2);
     }
     /**
      * Get the current ratios for passing votes, extended version with parameters matching.
      */
     GetCallVoteRatiosEx() {
-        return this.call<unknown[]>('GetCallVoteRatiosEx');
+        return this.call<GetCallVoteRatiosEx_t[]>('GetCallVoteRatiosEx');
     }
     /**
      * Send a text message to all clients without the server login.
@@ -209,14 +294,14 @@ export class Remote {
      * single login or a list of comma-separated logins). The parameter is an array of structures {Lang='xx',
      * Text='...'}. If no matching language is found, the last text in the array is used.
      */
-    ChatSendServerMessageToLanguage(a1: unknown[], a2: string) {
+    ChatSendServerMessageToLanguage(a1: ChatSendServerMessageToLanguage_t[], a2: string) {
         return this.call<boolean>('ChatSendServerMessageToLanguage', a1, a2);
     }
     /**
      * Send a text message without the server login to the client with the specified PlayerId.
      */
     ChatSendServerMessageToId(a1: string, a2: number) {
-        return this.call<boolean>('ChatSendServerMessageToId', a1, a2);
+        return this.call<boolean>('ChatSendServerMessageToId', a1, Integer.from(a2));
     }
     /**
      * Send a text message without the server login to the client with the specified login. Login can be a single
@@ -236,7 +321,7 @@ export class Remote {
      * of comma-separated logins). The parameter is an array of structures {Lang='xx', Text='...'}. If no matching
      * language is found, the last text in the array is used.
      */
-    ChatSendToLanguage(a1: unknown[], a2: string) {
+    ChatSendToLanguage(a1: ChatSendToLanguage_t[], a2: string) {
         return this.call<boolean>('ChatSendToLanguage', a1, a2);
     }
     /**
@@ -250,13 +335,13 @@ export class Remote {
      * Send a text message to the client with the specified PlayerId.
      */
     ChatSendToId(a1: string, a2: number) {
-        return this.call<boolean>('ChatSendToId', a1, a2);
+        return this.call<boolean>('ChatSendToId', a1, Integer.from(a2));
     }
     /**
      * Returns the last chat lines. Maximum of 40 lines.
      */
     GetChatLines() {
-        return this.call<unknown[]>('GetChatLines');
+        return this.call<GetChatLines_t[]>('GetChatLines');
     }
     /**
      * The chat messages are no longer dispatched to the players, they only go to the rpc callback and the controller
@@ -279,7 +364,7 @@ export class Remote {
      * display next to it (or '' for no avatar), and an optional 'variant' in [0 = normal, 1 = Sad, 2 = Happy].
      */
     SendNotice(a1: string, a2: string, a3: number) {
-        return this.call<boolean>('SendNotice', a1, a2, a3);
+        return this.call<boolean>('SendNotice', a1, a2, Integer.from(a3));
     }
     /**
      * Display a notice on the client with the specified UId. The parameters are the Uid of the client to whom the
@@ -287,7 +372,7 @@ export class Remote {
      * avatar), and an optional 'variant' in [0 = normal, 1 = Sad, 2 = Happy].
      */
     SendNoticeToId(a1: number, a2: string, a3: number, a4: number) {
-        return this.call<boolean>('SendNoticeToId', a1, a2, a3, a4);
+        return this.call<boolean>('SendNoticeToId', Integer.from(a1), a2, Integer.from(a3), Integer.from(a4));
     }
     /**
      * Display a notice on the client with the specified login. The parameters are the login of the client to whom the
@@ -296,7 +381,7 @@ export class Remote {
      * comma-separated logins.
      */
     SendNoticeToLogin(a1: string, a2: string, a3: string, a4: number) {
-        return this.call<boolean>('SendNoticeToLogin', a1, a2, a3, a4);
+        return this.call<boolean>('SendNoticeToLogin', a1, a2, a3, Integer.from(a4));
     }
     /**
      * Display a manialink page on all clients. The parameters are the xml description of the page to display, a
@@ -304,14 +389,14 @@ export class Remote {
      * user clicks on a page option.
      */
     SendDisplayManialinkPage(a1: string, a2: number, a3: boolean) {
-        return this.call<boolean>('SendDisplayManialinkPage', a1, a2, a3);
+        return this.call<boolean>('SendDisplayManialinkPage', a1, Integer.from(a2), a3);
     }
     /**
      * Display a manialink page on the client with the specified UId. The first parameter is the UId of the player,
      * the other are identical to 'SendDisplayManialinkPage'.
      */
     SendDisplayManialinkPageToId(a1: number, a2: string, a3: number, a4: boolean) {
-        return this.call<boolean>('SendDisplayManialinkPageToId', a1, a2, a3, a4);
+        return this.call<boolean>('SendDisplayManialinkPageToId', Integer.from(a1), a2, Integer.from(a3), a4);
     }
     /**
      * Display a manialink page on the client with the specified login. The first parameter is the login of the
@@ -319,7 +404,7 @@ export class Remote {
      * comma-separated logins.
      */
     SendDisplayManialinkPageToLogin(a1: string, a2: string, a3: number, a4: boolean) {
-        return this.call<boolean>('SendDisplayManialinkPageToLogin', a1, a2, a3, a4);
+        return this.call<boolean>('SendDisplayManialinkPageToLogin', a1, a2, Integer.from(a3), a4);
     }
     /**
      * Hide the displayed manialink page on all clients.
@@ -331,7 +416,7 @@ export class Remote {
      * Hide the displayed manialink page on the client with the specified UId.
      */
     SendHideManialinkPageToId(a1: number) {
-        return this.call<boolean>('SendHideManialinkPageToId', a1);
+        return this.call<boolean>('SendHideManialinkPageToId', Integer.from(a1));
     }
     /**
      * Hide the displayed manialink page on the client with the specified login. Login can be a single login or a list
@@ -345,14 +430,14 @@ export class Remote {
      * int Result} Result==0 -> no answer, Result>0.... -> answer from the player.
      */
     GetManialinkPageAnswers() {
-        return this.call<unknown[]>('GetManialinkPageAnswers');
+        return this.call<GetManialinkPageAnswers_t[]>('GetManialinkPageAnswers');
     }
     /**
      * Opens a link in the client with the specified UId. The parameters are the Uid of the client to whom the link to
      * open is sent, the link url, and the 'LinkType' (0 in the external browser, 1 in the internal manialink browser).
      */
     SendOpenLinkToId(a1: number, a2: string, a3: number) {
-        return this.call<boolean>('SendOpenLinkToId', a1, a2, a3);
+        return this.call<boolean>('SendOpenLinkToId', Integer.from(a1), a2, Integer.from(a3));
     }
     /**
      * Opens a link in the client with the specified login. The parameters are the login of the client to whom the
@@ -360,7 +445,7 @@ export class Remote {
      * browser). Login can be a single login or a list of comma-separated logins.
      */
     SendOpenLinkToLogin(a1: string, a2: string, a3: number) {
-        return this.call<boolean>('SendOpenLinkToLogin', a1, a2, a3);
+        return this.call<boolean>('SendOpenLinkToLogin', a1, a2, Integer.from(a3));
     }
     /**
      * Kick the player with the specified login, with an optional message.
@@ -372,7 +457,7 @@ export class Remote {
      * Kick the player with the specified PlayerId, with an optional message.
      */
     KickId(a1: number, a2: string) {
-        return this.call<boolean>('KickId', a1, a2);
+        return this.call<boolean>('KickId', Integer.from(a1), a2);
     }
     /**
      * Ban the player with the specified login, with an optional message.
@@ -391,7 +476,7 @@ export class Remote {
      * Ban the player with the specified PlayerId, with an optional message.
      */
     BanId(a1: number, a2: string) {
-        return this.call<boolean>('BanId', a1, a2);
+        return this.call<boolean>('BanId', Integer.from(a1), a2);
     }
     /**
      * Unban the player with the specified login.
@@ -411,7 +496,7 @@ export class Remote {
      * structures. Each structure contains the following fields : Login, ClientName and IPAddress.
      */
     GetBanList(a1: number, a2: number) {
-        return this.call<unknown[]>('GetBanList', a1, a2);
+        return this.call<GetBanList_t[]>('GetBanList', Integer.from(a1), Integer.from(a2));
     }
     /**
      * Blacklist the player with the specified login.
@@ -423,7 +508,7 @@ export class Remote {
      * Blacklist the player with the specified PlayerId.
      */
     BlackListId(a1: number) {
-        return this.call<boolean>('BlackListId', a1);
+        return this.call<boolean>('BlackListId', Integer.from(a1));
     }
     /**
      * UnBlackList the player with the specified login.
@@ -443,7 +528,7 @@ export class Remote {
      * of structures. Each structure contains the following fields : Login.
      */
     GetBlackList(a1: number, a2: number) {
-        return this.call<unknown[]>('GetBlackList', a1, a2);
+        return this.call<GetBlackList_t[]>('GetBlackList', Integer.from(a1), Integer.from(a2));
     }
     /**
      * Load the black list file with the specified file name.
@@ -467,7 +552,7 @@ export class Remote {
      * Add the player with the specified PlayerId on the guest list.
      */
     AddGuestId(a1: number) {
-        return this.call<boolean>('AddGuestId', a1);
+        return this.call<boolean>('AddGuestId', Integer.from(a1));
     }
     /**
      * Remove the player with the specified login from the guest list.
@@ -479,7 +564,7 @@ export class Remote {
      * Remove the player with the specified PlayerId from the guest list.
      */
     RemoveGuestId(a1: number) {
-        return this.call<boolean>('RemoveGuestId', a1);
+        return this.call<boolean>('RemoveGuestId', Integer.from(a1));
     }
     /**
      * Clean the guest list of the server.
@@ -493,7 +578,7 @@ export class Remote {
      * array of structures. Each structure contains the following fields : Login.
      */
     GetGuestList(a1: number, a2: number) {
-        return this.call<unknown[]>('GetGuestList', a1, a2);
+        return this.call<GetGuestList_t[]>('GetGuestList', Integer.from(a1), Integer.from(a2));
     }
     /**
      * Load the guest list file with the specified file name.
@@ -524,19 +609,19 @@ export class Remote {
      * Write the data to the specified file. The filename is relative to the Maps path.
      */
     WriteFile(a1: string, a2: string) {
-        return this.call<boolean>('WriteFile', a1, a2);
+        return this.call<boolean>('WriteFile', a1, Base64.from(a2));
     }
     /**
      * Send the data to the specified player.
      */
     TunnelSendDataToId(a1: number, a2: string) {
-        return this.call<boolean>('TunnelSendDataToId', a1, a2);
+        return this.call<boolean>('TunnelSendDataToId', Integer.from(a1), Base64.from(a2));
     }
     /**
      * Send the data to the specified player. Login can be a single login or a list of comma-separated logins.
      */
     TunnelSendDataToLogin(a1: string, a2: string) {
-        return this.call<boolean>('TunnelSendDataToLogin', a1, a2);
+        return this.call<boolean>('TunnelSendDataToLogin', a1, Base64.from(a2));
     }
     /**
      * Just log the parameters and invoke a callback. Can be used to talk to other xmlrpc clients connected, or to
@@ -555,7 +640,7 @@ export class Remote {
      * Ignore the player with the specified PlayerId.
      */
     IgnoreId(a1: number) {
-        return this.call<boolean>('IgnoreId', a1);
+        return this.call<boolean>('IgnoreId', Integer.from(a1));
     }
     /**
      * Unignore the player with the specified login.
@@ -567,7 +652,7 @@ export class Remote {
      * Unignore the player with the specified PlayerId.
      */
     UnIgnoreId(a1: number) {
-        return this.call<boolean>('UnIgnoreId', a1);
+        return this.call<boolean>('UnIgnoreId', Integer.from(a1));
     }
     /**
      * Clean the ignore list of the server.
@@ -581,7 +666,7 @@ export class Remote {
      * of structures. Each structure contains the following fields : Login.
      */
     GetIgnoreList(a1: number, a2: number) {
-        return this.call<unknown[]>('GetIgnoreList', a1, a2);
+        return this.call<GetIgnoreList_t[]>('GetIgnoreList', Integer.from(a1), Integer.from(a2));
     }
     /**
      * Pay planets from the server account to a player, returns the BillId. This method takes three parameters: Login
@@ -589,7 +674,7 @@ export class Remote {
      * itself may cost planets, so you need to have planets on the server account.
      */
     Pay(a1: string, a2: number, a3: string) {
-        return this.call<number>('Pay', a1, a2, a3);
+        return this.call<number>('Pay', a1, Integer.from(a2), a3);
     }
     /**
      * Create a bill, send it to a player, and return the BillId. This method takes four parameters: LoginFrom of the
@@ -598,7 +683,7 @@ export class Remote {
      * need to have planets on the server account.
      */
     SendBill(a1: string, a2: number, a3: string, a4: string) {
-        return this.call<number>('SendBill', a1, a2, a3, a4);
+        return this.call<number>('SendBill', a1, Integer.from(a2), a3, a4);
     }
     /**
      * Returns the current state of a bill. This method takes one parameter, the BillId. Returns a struct containing
@@ -606,7 +691,7 @@ export class Remote {
      * Payed, Refused, Error.
      */
     GetBillState(a1: number) {
-        return this.call<GetBillState_t>('GetBillState', a1);
+        return this.call<GetBillState_t>('GetBillState', Integer.from(a1));
     }
     /**
      * Returns the current number of planets on the server account.
@@ -631,13 +716,13 @@ export class Remote {
      * Set the download and upload rates (in kbps).
      */
     SetConnectionRates(a1: number, a2: number) {
-        return this.call<boolean>('SetConnectionRates', a1, a2);
+        return this.call<boolean>('SetConnectionRates', Integer.from(a1), Integer.from(a2));
     }
     /**
      * Returns the list of tags and associated values set on this server.
      */
     GetServerTags() {
-        return this.call<unknown[]>('GetServerTags');
+        return this.call<GetServerTags_t[]>('GetServerTags');
     }
     /**
      * Set a tag and its value on the server. This method takes two parameters. The first parameter specifies the name
@@ -687,7 +772,7 @@ export class Remote {
      * from nations).
      */
     SetHideServer(a1: number) {
-        return this.call<boolean>('SetHideServer', a1);
+        return this.call<boolean>('SetHideServer', Integer.from(a1));
     }
     /**
      * Get whether the server wants to be hidden from the public server list.
@@ -724,7 +809,7 @@ export class Remote {
      * Set a new maximum number of players. Requires a map restart to be taken into account.
      */
     SetMaxPlayers(a1: number) {
-        return this.call<boolean>('SetMaxPlayers', a1);
+        return this.call<boolean>('SetMaxPlayers', Integer.from(a1));
     }
     /**
      * Get the current and next maximum number of players allowed on server. The struct returned contains two fields
@@ -737,7 +822,7 @@ export class Remote {
      * Set a new maximum number of Spectators. Requires a map restart to be taken into account.
      */
     SetMaxSpectators(a1: number) {
-        return this.call<boolean>('SetMaxSpectators', a1);
+        return this.call<boolean>('SetMaxSpectators', Integer.from(a1));
     }
     /**
      * Get the current and next maximum number of Spectators allowed on server. The struct returned contains two
@@ -751,7 +836,7 @@ export class Remote {
      * average level of the players.
      */
     SetLobbyInfo(a1: boolean, a2: number, a3: number, a4: number) {
-        return this.call<boolean>('SetLobbyInfo', a1, a2, a3, a4);
+        return this.call<boolean>('SetLobbyInfo', a1, Integer.from(a2), Integer.from(a3), Double.from(a4));
     }
     /**
      * Get whether the server if a lobby, the number and maximum number of players currently managed by it. The struct
@@ -765,7 +850,7 @@ export class Remote {
      * '#qjoin=login@title', ProposeAddToFavorites and DelayQuitButton (in milliseconds).
      */
     CustomizeQuitDialog(a1: string, a2: string, a3: boolean, a4: number) {
-        return this.call<boolean>('CustomizeQuitDialog', a1, a2, a3, a4);
+        return this.call<boolean>('CustomizeQuitDialog', a1, a2, a3, Integer.from(a4));
     }
     /**
      * Prior to loading next map, execute SendToServer url '#qjoin=login@title'.
@@ -852,14 +937,25 @@ export class Remote {
         a8: number,
         a9: string,
     ) {
-        return this.call<boolean>('SetTeamInfo', a1, a2, a3, a4, a5, a6, a7, a8, a9);
+        return this.call<boolean>(
+            'SetTeamInfo',
+            a1,
+            Double.from(a2),
+            a3,
+            a4,
+            Double.from(a5),
+            a6,
+            a7,
+            Double.from(a8),
+            a9,
+        );
     }
     /**
      * Return Team info for a given clan (0 = no clan, 1, 2). The structure contains: Name, ZonePath, City, EmblemUrl,
      * HuePrimary, HueSecondary, RGB, ClubLinkUrl.
      */
     GetTeamInfo(a1: number) {
-        return this.call<GetTeamInfo_t>('GetTeamInfo', a1);
+        return this.call<GetTeamInfo_t>('GetTeamInfo', Integer.from(a1));
     }
     /**
      * Set the clublinks to use for the two clans.
@@ -978,7 +1074,7 @@ export class Remote {
      * AutoSaveValidationReplays, HideServer, CurrentUseChangingValidationSeed, NextUseChangingValidationSeed.
      */
     GetServerOptions(a1: number) {
-        return this.call<GetServerOptions_t>('GetServerOptions', a1);
+        return this.call<GetServerOptions_t>('GetServerOptions', Integer.from(a1));
     }
     /**
      * Set whether the players can choose their side or if the teams are forced by the server (using
@@ -998,7 +1094,7 @@ export class Remote {
      * by the server setting; and Mods, an array of structures [{EnvName, Url}, ...]. Requires a map restart to be
      * taken into account.
      */
-    SetForcedMods(a1: boolean, a2: unknown[]) {
+    SetForcedMods(a1: boolean, a2: SetForcedMods_t[]) {
         return this.call<boolean>('SetForcedMods', a1, a2);
     }
     /**
@@ -1027,14 +1123,14 @@ export class Remote {
      * optional, you may set value '' for any of those. All 3 null means same as Orig). Will only affect players
      * connecting after the value is set.
      */
-    SetForcedSkins(a1: unknown[]) {
+    SetForcedSkins(a1: SetForcedSkins_t[]) {
         return this.call<boolean>('SetForcedSkins', a1);
     }
     /**
      * Get the current forced skins.
      */
     GetForcedSkins() {
-        return this.call<unknown[]>('GetForcedSkins');
+        return this.call<GetForcedSkins_t[]>('GetForcedSkins');
     }
     /**
      * Returns the last error message for an internet connection.
@@ -1106,7 +1202,7 @@ export class Remote {
     /**
      * Send an event to the mode script.
      */
-    TriggerModeScriptEventArray(a1: string, a2: unknown[]) {
+    TriggerModeScriptEventArray(a1: string, a2: TriggerModeScriptEventArray_t[]) {
         return this.call<boolean>('TriggerModeScriptEventArray', a1, a2);
     }
     /**
@@ -1143,7 +1239,7 @@ export class Remote {
     /**
      * Send an event to the server script.
      */
-    TriggerServerPluginEventArray(a1: string, a2: unknown[]) {
+    TriggerServerPluginEventArray(a1: string, a2: TriggerServerPluginEventArray_t[]) {
         return this.call<boolean>('TriggerServerPluginEventArray', a1, a2);
     }
     /**
@@ -1223,7 +1319,7 @@ export class Remote {
      * CupRoundsPerChallenge, CupNbWinners, CupWarmUpDuration.
      */
     GetCurrentGameInfo(a1: number) {
-        return this.call<GetCurrentGameInfo_t>('GetCurrentGameInfo', a1);
+        return this.call<GetCurrentGameInfo_t>('GetCurrentGameInfo', Integer.from(a1));
     }
     /**
      * Optional parameter for compatibility: struct version (0 = united, 1 = forever). Returns a struct containing the
@@ -1234,7 +1330,7 @@ export class Remote {
      * CupRoundsPerChallenge, CupNbWinners, CupWarmUpDuration.
      */
     GetNextGameInfo(a1: number) {
-        return this.call<GetNextGameInfo_t>('GetNextGameInfo', a1);
+        return this.call<GetNextGameInfo_t>('GetNextGameInfo', Integer.from(a1));
     }
     /**
      * Optional parameter for compatibility: struct version (0 = united, 1 = forever). Returns a struct containing two
@@ -1242,14 +1338,14 @@ export class Remote {
      * The first structure is named CurrentGameInfos and the second NextGameInfos.
      */
     GetGameInfos(a1: number) {
-        return this.call<GetGameInfos_t>('GetGameInfos', a1);
+        return this.call<GetGameInfos_t>('GetGameInfos', Integer.from(a1));
     }
     /**
      * Set whether to override the players preferences and always display all opponents (0=no override, 1=show all,
      * other value=minimum number of opponents). Requires a map restart to be taken into account.
      */
     SetForceShowAllOpponents(a1: number) {
-        return this.call<boolean>('SetForceShowAllOpponents', a1);
+        return this.call<boolean>('SetForceShowAllOpponents', Integer.from(a1));
     }
     /**
      * Get whether players are forced to show all opponents. The struct returned contains two fields CurrentValue and
@@ -1276,7 +1372,7 @@ export class Remote {
      * @deprecated
      */
     SetCupRoundsPerChallenge(a1: number) {
-        return this.call<boolean>('SetCupRoundsPerChallenge', a1);
+        return this.call<boolean>('SetCupRoundsPerChallenge', Integer.from(a1));
     }
     /**
      * (deprecated)
@@ -1301,7 +1397,7 @@ export class Remote {
      * Sets the map index in the selection that will be played next (unless the current one is restarted...)
      */
     SetNextMapIndex(a1: number) {
-        return this.call<boolean>('SetNextMapIndex', a1);
+        return this.call<boolean>('SetNextMapIndex', Integer.from(a1));
     }
     /**
      * Sets the map in the selection that will be played next (unless the current one is restarted...)
@@ -1313,7 +1409,7 @@ export class Remote {
      * Immediately jumps to the map designated by the index in the selection.
      */
     JumpToMapIndex(a1: number) {
-        return this.call<boolean>('JumpToMapIndex', a1);
+        return this.call<boolean>('JumpToMapIndex', Integer.from(a1));
     }
     /**
      * Immediately jumps to the map designated by its identifier (it must be in the selection).
@@ -1359,18 +1455,7 @@ export class Remote {
      * FileName, Environnement, Author, AuthorNickname, GoldTime, CopperPrice, MapType, MapStyle.
      */
     GetMapList(a1: number, a2: number) {
-        return this.call<{
-            UId: string;
-            Name: string;
-            FileName: string;
-            Environnement: string;
-            Author: string;
-            AuthorNickname: string;
-            GoldTime: number;
-            CopperPrice: number;
-            MapType: string;
-            MapStyle: string;
-        }[]>('GetMapList', a1, a2);
+        return this.call<GetMapList_t[]>('GetMapList', Integer.from(a1), Integer.from(a2));
     }
     /**
      * Add the map with the specified filename at the end of the current selection.
@@ -1382,7 +1467,7 @@ export class Remote {
      * Add the list of maps with the specified filenames at the end of the current selection. The list of maps to add
      * is an array of strings.
      */
-    AddMapList(a1: unknown[]) {
+    AddMapList(a1: AddMapList_t[]) {
         return this.call<number>('AddMapList', a1);
     }
     /**
@@ -1395,7 +1480,7 @@ export class Remote {
      * Remove the list of maps with the specified filenames from the current selection. The list of maps to remove is
      * an array of strings.
      */
-    RemoveMapList(a1: unknown[]) {
+    RemoveMapList(a1: RemoveMapList_t[]) {
         return this.call<number>('RemoveMapList', a1);
     }
     /**
@@ -1408,7 +1493,7 @@ export class Remote {
      * Insert the list of maps with the specified filenames after the current map. The list of maps to insert is an
      * array of strings.
      */
-    InsertMapList(a1: unknown[]) {
+    InsertMapList(a1: InsertMapList_t[]) {
         return this.call<number>('InsertMapList', a1);
     }
     /**
@@ -1421,7 +1506,7 @@ export class Remote {
      * Set as next maps the list of maps with the specified filenames, if they are present in the selection. The list
      * of maps to choose is an array of strings.
      */
-    ChooseNextMapList(a1: unknown[]) {
+    ChooseNextMapList(a1: ChooseNextMapList_t[]) {
         return this.call<number>('ChooseNextMapList', a1);
     }
     /**
@@ -1443,7 +1528,7 @@ export class Remote {
      * @deprecated
      */
     SetNextChallengeIndex(a1: number) {
-        return this.call<boolean>('SetNextChallengeIndex', a1);
+        return this.call<boolean>('SetNextChallengeIndex', Integer.from(a1));
     }
     /**
      * (deprecated)
@@ -1478,7 +1563,7 @@ export class Remote {
      * @deprecated
      */
     GetChallengeList(a1: number, a2: number) {
-        return this.call<unknown[]>('GetChallengeList', a1, a2);
+        return this.call<GetChallengeList_t[]>('GetChallengeList', Integer.from(a1), Integer.from(a2));
     }
     /**
      * (deprecated)
@@ -1491,7 +1576,7 @@ export class Remote {
      * (deprecated)
      * @deprecated
      */
-    AddChallengeList(a1: unknown[]) {
+    AddChallengeList(a1: AddChallengeList_t[]) {
         return this.call<number>('AddChallengeList', a1);
     }
     /**
@@ -1505,7 +1590,7 @@ export class Remote {
      * (deprecated)
      * @deprecated
      */
-    RemoveChallengeList(a1: unknown[]) {
+    RemoveChallengeList(a1: RemoveChallengeList_t[]) {
         return this.call<number>('RemoveChallengeList', a1);
     }
     /**
@@ -1519,7 +1604,7 @@ export class Remote {
      * (deprecated)
      * @deprecated
      */
-    InsertChallengeList(a1: unknown[]) {
+    InsertChallengeList(a1: InsertChallengeList_t[]) {
         return this.call<number>('InsertChallengeList', a1);
     }
     /**
@@ -1533,7 +1618,7 @@ export class Remote {
      * (deprecated)
      * @deprecated
      */
-    ChooseNextChallengeList(a1: unknown[]) {
+    ChooseNextChallengeList(a1: ChooseNextChallengeList_t[]) {
         return this.call<number>('ChooseNextChallengeList', a1);
     }
     /**
@@ -1573,7 +1658,7 @@ export class Remote {
      * TemporarySpectator * 10 + PureSpectator * 100 + AutoTarget * 1000 + CurrentTargetId * 10000
      */
     GetPlayerList(a1: number, a2: number, a3: number) {
-        return this.call<unknown[]>('GetPlayerList', a1, a2, a3);
+        return this.call<GetPlayerList_t[]>('GetPlayerList', Integer.from(a1), Integer.from(a2), Integer.from(a3));
     }
     /**
      * Returns a struct containing the infos on the player with the specified login, with an optional parameter for
@@ -1585,7 +1670,7 @@ export class Remote {
      * + AutoTarget * 1000 + CurrentTargetId * 10000
      */
     GetPlayerInfo(a1: string, a2: number) {
-        return this.call<GetPlayerInfo_t>('GetPlayerInfo', a1, a2);
+        return this.call<GetPlayerInfo_t>('GetPlayerInfo', a1, Integer.from(a2));
     }
     /**
      * Returns a struct containing the infos on the player with the specified login. The structure contains the
@@ -1608,7 +1693,7 @@ export class Remote {
      * Spectator + TemporarySpectator * 10 + PureSpectator * 100 + AutoTarget * 1000 + CurrentTargetId * 10000
      */
     GetMainServerPlayerInfo(a1: number) {
-        return this.call<GetMainServerPlayerInfo_t>('GetMainServerPlayerInfo', a1);
+        return this.call<GetMainServerPlayerInfo_t>('GetMainServerPlayerInfo', Integer.from(a1));
     }
     /**
      * Returns the current rankings for the race in progress. (In trackmania legacy team modes, the scores for the two
@@ -1619,7 +1704,7 @@ export class Remote {
      * NbrLapsFinished, LadderScore, and an array BestCheckpoints that contains the checkpoint times for the best race.
      */
     GetCurrentRanking(a1: number, a2: number) {
-        return this.call<unknown[]>('GetCurrentRanking', a1, a2);
+        return this.call<GetCurrentRanking_t[]>('GetCurrentRanking', Integer.from(a1), Integer.from(a2));
     }
     /**
      * Returns the current ranking for the race in progressof the player with the specified login (or list of
@@ -1629,7 +1714,7 @@ export class Remote {
      * best race.
      */
     GetCurrentRankingForLogin(a1: string) {
-        return this.call<unknown[]>('GetCurrentRankingForLogin', a1);
+        return this.call<GetCurrentRankingForLogin_t[]>('GetCurrentRankingForLogin', a1);
     }
     /**
      * Returns the current winning team for the race in progress. (-1: if not in team mode, or draw match)
@@ -1642,7 +1727,7 @@ export class Remote {
      * structs {int PlayerId, int Score}. And a boolean SilentMode - if true, the scores are silently updated, allowing
      * an external controller to do its custom counting...
      */
-    ForceScores(a1: unknown[], a2: boolean) {
+    ForceScores(a1: ForceScores_t[], a2: boolean) {
         return this.call<boolean>('ForceScores', a1, a2);
     }
     /**
@@ -1650,28 +1735,28 @@ export class Remote {
      * 1).
      */
     ForcePlayerTeam(a1: string, a2: number) {
-        return this.call<boolean>('ForcePlayerTeam', a1, a2);
+        return this.call<boolean>('ForcePlayerTeam', a1, Integer.from(a2));
     }
     /**
      * Force the team of the player. Only available in team mode. You have to pass the playerid and the team number (0
      * or 1).
      */
     ForcePlayerTeamId(a1: number, a2: number) {
-        return this.call<boolean>('ForcePlayerTeamId', a1, a2);
+        return this.call<boolean>('ForcePlayerTeamId', Integer.from(a1), Integer.from(a2));
     }
     /**
      * Force the spectating status of the player. You have to pass the login and the spectator mode (0: user
      * selectable, 1: spectator, 2: player, 3: spectator but keep selectable).
      */
     ForceSpectator(a1: string, a2: number) {
-        return this.call<boolean>('ForceSpectator', a1, a2);
+        return this.call<boolean>('ForceSpectator', a1, Integer.from(a2));
     }
     /**
      * Force the spectating status of the player. You have to pass the playerid and the spectator mode (0: user
      * selectable, 1: spectator, 2: player, 3: spectator but keep selectable).
      */
     ForceSpectatorId(a1: number, a2: number) {
-        return this.call<boolean>('ForceSpectatorId', a1, a2);
+        return this.call<boolean>('ForceSpectatorId', Integer.from(a1), Integer.from(a2));
     }
     /**
      * Force spectators to look at a specific player. You have to pass the login of the spectator (or '' for all) and
@@ -1679,7 +1764,7 @@ export class Remote {
      * 0 = replay, 1 = follow, 2 = free).
      */
     ForceSpectatorTarget(a1: string, a2: string, a3: number) {
-        return this.call<boolean>('ForceSpectatorTarget', a1, a2, a3);
+        return this.call<boolean>('ForceSpectatorTarget', a1, a2, Integer.from(a3));
     }
     /**
      * Force spectators to look at a specific player. You have to pass the id of the spectator (or -1 for all) and the
@@ -1687,7 +1772,7 @@ export class Remote {
      * replay, 1 = follow, 2 = free).
      */
     ForceSpectatorTargetId(a1: number, a2: number, a3: number) {
-        return this.call<boolean>('ForceSpectatorTargetId', a1, a2, a3);
+        return this.call<boolean>('ForceSpectatorTargetId', Integer.from(a1), Integer.from(a2), Integer.from(a3));
     }
     /**
      * Pass the login of the spectator. A spectator that once was a player keeps his player slot, so that he can go
@@ -1701,7 +1786,7 @@ export class Remote {
      * back to race mode. Calling this function frees this slot for another player to connect.
      */
     SpectatorReleasePlayerSlotId(a1: number) {
-        return this.call<boolean>('SpectatorReleasePlayerSlotId', a1);
+        return this.call<boolean>('SpectatorReleasePlayerSlotId', Integer.from(a1));
     }
     /**
      * Returns a struct containing the networks stats of the server. The structure contains the following fields :
@@ -1729,17 +1814,68 @@ export class Remote {
 export class MultiCall extends Remote {
     queue: unknown[] = [];
 
-    call<T>() {
-        this.queue.push([...arguments]);
+    call<T>(methodName: string, ...params: unknown[]) {
+        this.queue.push({ methodName, params });
         return Promise.resolve() as T;
     }
 }
 
-type GetVersion_t = {};
-type GetStatus_t = {};
-type GetCurrentCallVote_t = {};
-type GetCallVoteTimeOut_t = {};
-type GetBillState_t = {};
+type system_listMethods_t = {
+    a1: unknown;
+};
+type system_methodSignature_t = {
+    a1: unknown;
+};
+type system_multicall_t = {
+    a1: unknown;
+};
+type GetVersion_t = {
+    a1: unknown;
+};
+type GetStatus_t = {
+    a1: unknown;
+};
+type GetCurrentCallVote_t = {
+    a1: unknown;
+};
+type GetCallVoteTimeOut_t = {
+    a1: unknown;
+};
+// deno-lint-ignore ban-types
+type SetCallVoteRatios_t = {};
+type GetCallVoteRatios_t = {
+    a1: unknown;
+};
+// deno-lint-ignore ban-types
+type SetCallVoteRatiosEx_t = {};
+type GetCallVoteRatiosEx_t = {
+    a1: unknown;
+};
+// deno-lint-ignore ban-types
+type ChatSendServerMessageToLanguage_t = {};
+// deno-lint-ignore ban-types
+type ChatSendToLanguage_t = {};
+type GetChatLines_t = {
+    a1: unknown;
+};
+type GetManialinkPageAnswers_t = {
+    a1: unknown;
+};
+type GetBanList_t = {
+    a1: unknown;
+};
+type GetBlackList_t = {
+    a1: unknown;
+};
+type GetGuestList_t = {
+    a1: unknown;
+};
+type GetIgnoreList_t = {
+    a1: unknown;
+};
+type GetBillState_t = {
+    a1: unknown;
+};
 type GetSystemInfo_t = {
     PublishedIp: string;
     Port: number;
@@ -1752,43 +1888,170 @@ type GetSystemInfo_t = {
     IsServer: boolean;
     IsDedicated: boolean;
 };
-type GetMaxPlayers_t = {};
-type GetMaxSpectators_t = {};
-type GetLobbyInfo_t = {};
-type GetTeamInfo_t = {};
-type GetForcedClubLinks_t = {};
-type GetDemoTokenInfosForPlayer_t = {};
+type GetServerTags_t = {
+    a1: unknown;
+};
+type GetMaxPlayers_t = {
+    a1: unknown;
+};
+type GetMaxSpectators_t = {
+    a1: unknown;
+};
+type GetLobbyInfo_t = {
+    a1: unknown;
+};
+type GetTeamInfo_t = {
+    a1: unknown;
+};
+type GetForcedClubLinks_t = {
+    a1: unknown;
+};
+type GetDemoTokenInfosForPlayer_t = {
+    a1: unknown;
+};
+// deno-lint-ignore ban-types
 type SetServerOptions_t = {};
-type GetServerOptions_t = {};
-type GetForcedMods_t = {};
-type GetForcedMusic_t = {};
-type GetModeScriptInfo_t = {};
-type GetModeScriptSettings_t = {};
+type GetServerOptions_t = {
+    a1: unknown;
+};
+// deno-lint-ignore ban-types
+type SetForcedMods_t = {};
+type GetForcedMods_t = {
+    a1: unknown;
+};
+type GetForcedMusic_t = {
+    a1: unknown;
+};
+// deno-lint-ignore ban-types
+type SetForcedSkins_t = {};
+type GetForcedSkins_t = {
+    a1: unknown;
+};
+type GetModeScriptInfo_t = {
+    a1: unknown;
+};
+type GetModeScriptSettings_t = {
+    a1: unknown;
+};
+// deno-lint-ignore ban-types
 type SetModeScriptSettings_t = {};
+// deno-lint-ignore ban-types
 type SendModeScriptCommands_t = {};
+// deno-lint-ignore ban-types
 type SetModeScriptSettingsAndCommands_t = {};
-type GetModeScriptVariables_t = {};
+type GetModeScriptVariables_t = {
+    a1: unknown;
+};
+// deno-lint-ignore ban-types
 type SetModeScriptVariables_t = {};
+// deno-lint-ignore ban-types
+type TriggerModeScriptEventArray_t = {};
+// deno-lint-ignore ban-types
 type SetServerPlugin_t = {};
-type GetServerPlugin_t = {};
-type GetServerPluginVariables_t = {};
+type GetServerPlugin_t = {
+    a1: unknown;
+};
+type GetServerPluginVariables_t = {
+    a1: unknown;
+};
+// deno-lint-ignore ban-types
 type SetServerPluginVariables_t = {};
-type GetScriptCloudVariables_t = {};
+// deno-lint-ignore ban-types
+type TriggerServerPluginEventArray_t = {};
+type GetScriptCloudVariables_t = {
+    a1: unknown;
+};
+// deno-lint-ignore ban-types
 type SetScriptCloudVariables_t = {};
+// deno-lint-ignore ban-types
 type SetGameInfos_t = {};
-type GetCurrentGameInfo_t = {};
-type GetNextGameInfo_t = {};
-type GetGameInfos_t = {};
-type GetForceShowAllOpponents_t = {};
-type GetScriptName_t = {};
-type GetCupRoundsPerChallenge_t = {};
-type GetCurrentMapInfo_t = {};
-type GetNextMapInfo_t = {};
-type GetMapInfo_t = {};
-type GetCurrentChallengeInfo_t = {};
-type GetNextChallengeInfo_t = {};
-type GetChallengeInfo_t = {};
-type GetPlayerInfo_t = {};
-type GetDetailedPlayerInfo_t = {};
-type GetMainServerPlayerInfo_t = {};
-type GetNetworkStats_t = {};
+type GetCurrentGameInfo_t = {
+    a1: unknown;
+};
+type GetNextGameInfo_t = {
+    a1: unknown;
+};
+type GetGameInfos_t = {
+    a1: unknown;
+};
+type GetForceShowAllOpponents_t = {
+    a1: unknown;
+};
+type GetScriptName_t = {
+    a1: unknown;
+};
+type GetCupRoundsPerChallenge_t = {
+    a1: unknown;
+};
+type GetCurrentMapInfo_t = {
+    a1: unknown;
+};
+type GetNextMapInfo_t = {
+    a1: unknown;
+};
+type GetMapInfo_t = {
+    a1: unknown;
+};
+type GetMapList_t = {
+    UId: string;
+    Name: string;
+    FileName: string;
+    Environnement: string;
+    Author: string;
+    AuthorNickname: string;
+    GoldTime: number;
+    CopperPrice: number;
+    MapType: string;
+    MapStyle: string;
+};
+// deno-lint-ignore ban-types
+type AddMapList_t = {};
+// deno-lint-ignore ban-types
+type RemoveMapList_t = {};
+// deno-lint-ignore ban-types
+type InsertMapList_t = {};
+// deno-lint-ignore ban-types
+type ChooseNextMapList_t = {};
+type GetCurrentChallengeInfo_t = {
+    a1: unknown;
+};
+type GetNextChallengeInfo_t = {
+    a1: unknown;
+};
+type GetChallengeInfo_t = {
+    a1: unknown;
+};
+type GetChallengeList_t = {
+    a1: unknown;
+};
+// deno-lint-ignore ban-types
+type AddChallengeList_t = {};
+// deno-lint-ignore ban-types
+type RemoveChallengeList_t = {};
+// deno-lint-ignore ban-types
+type InsertChallengeList_t = {};
+// deno-lint-ignore ban-types
+type ChooseNextChallengeList_t = {};
+type GetPlayerList_t = {
+    a1: unknown;
+};
+type GetPlayerInfo_t = {
+    a1: unknown;
+};
+type GetDetailedPlayerInfo_t = {
+    a1: unknown;
+};
+type GetMainServerPlayerInfo_t = {
+    a1: unknown;
+};
+type GetCurrentRanking_t = {
+    a1: unknown;
+};
+type GetCurrentRankingForLogin_t = {
+    a1: unknown;
+};
+// deno-lint-ignore ban-types
+type ForceScores_t = {};
+type GetNetworkStats_t = {
+    a1: unknown;
+};

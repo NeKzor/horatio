@@ -86,7 +86,7 @@ for (const style of styles) {
         const values = value as any[];
         values.forEach((value, idx) => {
             console.log(
-                `    '${value.at(0)?.toUpperCase() + value.slice(1)}${idx !== values.length - 1 ? '\' |' : '\';'}`,
+                `    '${value.at(0)?.toUpperCase() + value.slice(1)}${idx !== values.length - 1 ? "' |" : "';"}`,
             );
         });
         break;

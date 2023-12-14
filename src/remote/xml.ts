@@ -92,7 +92,17 @@ export const serialize = (arg: unknown): string | undefined => {
 export const deserialize = <T>(value: any): T => {
     if (typeof value === 'object') {
         if ('value' in value && 'name' in value) {
-            value[value.name] = Object.values(value['value']).at(0);
+            const [type, val] = Object.entries(value['value']).at(0) as [string, unknown];
+            switch (type) {
+                case 'int':
+                case 'i4':
+                case 'double':
+                    value[value.name] = Number(val);
+                    break;
+                default:
+                    value[value.name] = val;
+                    break;
+            }
             delete value.name;
             delete value.value;
             return value as T;

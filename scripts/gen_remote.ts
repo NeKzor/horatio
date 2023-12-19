@@ -4,9 +4,11 @@
 type RpcType = {
     name: string;
     type: string;
+    inner_type?: string;
     fields: {
         name: string;
         type: string;
+        inner_type?: string;
     }[];
 };
 
@@ -24,11 +26,15 @@ const { methods } = JSON.parse(await Deno.readTextFile('methods.json')) as {
 };
 
 const createParam =
-    (method: string) => (withType: boolean) => (value: { type: string; name?: string }, idx: number) => {
+    (method: string) =>
+    (withType: boolean) =>
+    (value: { type: string; name?: string; inner_type?: string }, idx: number) => {
         const name = (value.name?.length ?? 1) === 1 ? `a${idx + 1}` : value.name;
         switch (value.type) {
             case 'array':
-                return `${name}` + (withType ? `: ${method.replaceAll('.', '_')}_t[]` : '');
+                return value.inner_type
+                    ? `${name}` + (withType ? `: ${value.inner_type}[]` : '')
+                    : `${name}` + (withType ? `: ${method.replaceAll('.', '_')}_t[]` : '');
             case 'struct':
                 return `${name}` + (withType ? `: ${method.replaceAll('.', '_')}_t` : '');
             case 'boolean':
@@ -48,10 +54,10 @@ const createParam =
         }
     };
 
-const createReturnType = (method: string) => (value: { type: string }) => {
+const createReturnType = (method: string) => (value: RpcType) => {
     switch (value.type) {
         case 'array':
-            return `${method.replaceAll('.', '_')}_t[]`;
+            return value.inner_type ? `${value.inner_type}[]` : `${method.replaceAll('.', '_')}_t[]`;
         case 'struct':
             return `${method}_t`;
         case 'boolean':
@@ -84,7 +90,7 @@ const structs = new Map<string, RpcMethod>();
 console.log(`// Copyright (c) 2023, NeKz
 // SPDX-License-Identifier: MIT
 
-import * as XML from 'https://deno.land/x/xml@2.1.3/mod.ts';
+import * as XML from 'xml/mod.ts';
 import { Base64, deserialize, Double, Integer, serialize } from './xml.ts';
 
 // deno-lint-ignore-file ban-types
@@ -93,6 +99,32 @@ export type RpcMethod<P = keyof Remote> = P extends string
     ? P extends Capitalize<P> ? P : P extends \`system.\${string}\` ? P
     : never
     : never;
+
+export type RpcMethodResponse = {
+    params: {
+        param: {
+            // deno-lint-ignore no-explicit-any
+            value: any;
+        };
+    };
+};
+
+export type RpcFaultResponse = {
+    fault: {
+        value: {
+            struct: {
+                member: [
+                    { name: 'faultCode'; value: { int: string } },
+                    { name: 'faultString'; value: { string: string } },
+                ];
+            };
+        };
+    };
+};
+
+export type RpcResponse = {
+    methodResponse: RpcMethodResponse | RpcFaultResponse;
+};
 
 const encoder = new TextEncoder();
 const decoder = new TextDecoder();
@@ -106,7 +138,6 @@ export class Remote {
      * using remote = new Remote('127.0.0.1', 5_000);
      * await remote.connect();
      * await remote.Authenticate(name, password);
-     * remote.close();
      * \`\`\`
      */
     constructor(public readonly hostname: string, public readonly port: number) {}
@@ -185,7 +216,11 @@ export class Remote {
                     return options.value;
                 },
                 // deno-lint-ignore no-explicit-any
-            }) as any as { methodResponse: { params: { param: { value: any } } } };
+            }) as any as RpcResponse;
+
+            if ('fault' in doc.methodResponse) {
+                throw new Error('XML-RPC fault.', { cause: doc.methodResponse.fault });
+            }
 
             const result = Object.values(doc.methodResponse.params.param.value).at(0);
             return deserialize<T>(result);
@@ -235,10 +270,10 @@ const formatComment = (comment: string, isDeprecated: boolean, indentation = 4) 
 
 for (const method of methods) {
     method.params
-        .filter((param) => param.type === 'struct' || param.type === 'array')
+        .filter((param) => (param.type === 'struct' || param.type === 'array') && !param.inner_type)
         .forEach(() => structs.set(method.name, method));
 
-    if (method.returnType.type === 'struct' || method.returnType.type === 'array') {
+    if ((method.returnType.type === 'struct' || method.returnType.type === 'array') && !method.returnType.inner_type) {
         structs.set(method.name, method);
     }
 

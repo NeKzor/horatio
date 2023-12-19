@@ -1,7 +1,7 @@
 // Copyright (c) 2023, NeKz
 // SPDX-License-Identifier: MIT
 
-import * as XML from 'https://deno.land/x/xml@2.1.3/mod.ts';
+import * as XML from 'xml/mod.ts';
 import { Base64, deserialize, Double, Integer, serialize } from './xml.ts';
 
 // deno-lint-ignore-file ban-types
@@ -10,6 +10,32 @@ export type RpcMethod<P = keyof Remote> = P extends string
     ? P extends Capitalize<P> ? P : P extends `system.${string}` ? P
     : never
     : never;
+
+export type RpcMethodResponse = {
+    params: {
+        param: {
+            // deno-lint-ignore no-explicit-any
+            value: any;
+        };
+    };
+};
+
+export type RpcFaultResponse = {
+    fault: {
+        value: {
+            struct: {
+                member: [
+                    { name: 'faultCode'; value: { int: string } },
+                    { name: 'faultString'; value: { string: string } },
+                ];
+            };
+        };
+    };
+};
+
+export type RpcResponse = {
+    methodResponse: RpcMethodResponse | RpcFaultResponse;
+};
 
 const encoder = new TextEncoder();
 const decoder = new TextDecoder();
@@ -23,7 +49,6 @@ export class Remote {
      * using remote = new Remote('127.0.0.1', 5_000);
      * await remote.connect();
      * await remote.Authenticate(name, password);
-     * remote.close();
      * ```
      */
     constructor(public readonly hostname: string, public readonly port: number) {}
@@ -102,7 +127,11 @@ export class Remote {
                     return options.value;
                 },
                 // deno-lint-ignore no-explicit-any
-            }) as any as { methodResponse: { params: { param: { value: any } } } };
+            }) as any as RpcResponse;
+
+            if ('fault' in doc.methodResponse) {
+                throw new Error('XML-RPC fault.', { cause: doc.methodResponse.fault });
+            }
 
             const result = Object.values(doc.methodResponse.params.param.value).at(0);
             return deserialize<T>(result);
@@ -128,20 +157,20 @@ export class Remote {
      * Return an array of all available XML-RPC methods on this server.
      */
     'system.listMethods'() {
-        return this.call<system_listMethods_t[]>('system.listMethods');
+        return this.call<string[]>('system.listMethods');
     }
     /**
      * Given the name of a method, return an array of legal signatures. Each signature is an array of strings. The
      * first item of each signature is the return type, and any others items are parameter types.
      */
-    'system.methodSignature'(a1: string) {
-        return this.call<system_methodSignature_t[]>('system.methodSignature', a1);
+    'system.methodSignature'(methodName: string) {
+        return this.call<string[][]>('system.methodSignature', methodName);
     }
     /**
      * Given the name of a method, return a help string.
      */
-    'system.methodHelp'(a1: string) {
-        return this.call<string>('system.methodHelp', a1);
+    'system.methodHelp'(methodName: string) {
+        return this.call<string>('system.methodHelp', methodName);
     }
     /**
      * Process an array of calls, and return an array of results. Calls should be structs of the form {'methodName':
@@ -1820,12 +1849,6 @@ export class MultiCall extends Remote {
     }
 }
 
-type system_listMethods_t = {
-    a1: unknown;
-};
-type system_methodSignature_t = {
-    a1: unknown;
-};
 type system_multicall_t = {
     a1: unknown;
 };

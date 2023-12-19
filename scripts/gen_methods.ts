@@ -1,7 +1,7 @@
 // Copyright (c) 2023, NeKz
 // SPDX-License-Identifier: MIT
 
-import 'https://deno.land/std@0.208.0/dotenv/load.ts';
+import 'std/dotenv/load.ts';
 import { Remote } from '../src/remote/mod.ts';
 
 using remote = new Remote(Deno.env.get('RPC_HOST')!, Number(Deno.env.get('RPC_PORT')!));
@@ -50,12 +50,12 @@ const getAuthorization = (help: string) => {
 const rpcMethods = await remote['system.listMethods']();
 const methods = [];
 
-for (const name of rpcMethods as string[]) {
+for (const name of rpcMethods) {
     const [signature, help] = await remote.multiCall(async (call) => [
         await call['system.methodSignature'](name),
         await call['system.methodHelp'](name),
     ]);
-    const params = signature.at(0) as string[];
+    const params = signature.at(0)!;
     methods.push({
         name,
         params: params.slice(1).map(toType),

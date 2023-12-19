@@ -1,6 +1,7 @@
 .vscode/
 docs/node_modules
 npm/
+src/ui.tsx
 .env
 styles.json
 

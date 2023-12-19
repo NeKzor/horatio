@@ -1,7 +1,7 @@
 // Copyright (c) 2023, NeKz
 // SPDX-License-Identifier: MIT
 
-import 'https://deno.land/std@0.208.0/dotenv/load.ts';
+import 'std/dotenv/load.ts';
 import { Remote } from './remote/mod.ts';
 
 using remote = new Remote(Deno.env.get('RPC_HOST')!, Number(Deno.env.get('RPC_PORT')!));

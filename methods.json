@@ -3,22 +3,22 @@
         {
             "name": "system.listMethods",
             "params": [],
-            "returnType": { "name": "Return Type", "type": "array", "fields": [{ "name": "1", "type": "unknown" }] },
+            "returnType": { "name": "Return Type", "type": "array", "inner_type": "string", "fields": [{ "name": "1", "type": "unknown" }] },
             "description": "Return an array of all available XML-RPC methods on this server.",
             "deprecated": false,
             "authorization": ""
         },
         {
             "name": "system.methodSignature",
-            "params": [{ "name": "0", "type": "string" }],
-            "returnType": { "name": "Return Type", "type": "array", "fields": [{ "name": "1", "type": "unknown" }] },
+            "params": [{ "name": "methodName", "type": "string" }],
+            "returnType": { "name": "Return Type", "type": "array", "inner_type": "string[]", "fields": [{ "name": "1", "type": "unknown" }] },
             "description": "Given the name of a method, return an array of legal signatures. Each signature is an array of strings.  The first item of each signature is the return type, and any others items are parameter types.",
             "deprecated": false,
             "authorization": ""
         },
         {
             "name": "system.methodHelp",
-            "params": [{ "name": "0", "type": "string" }],
+            "params": [{ "name": "methodName", "type": "string" }],
             "returnType": { "name": "Return Type", "type": "string" },
             "description": "Given the name of a method, return a help string.",
             "deprecated": false,

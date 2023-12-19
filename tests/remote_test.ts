@@ -1,32 +1,62 @@
 // Copyright (c) 2023, NeKz
 // SPDX-License-Identifier: MIT
 
-import 'https://deno.land/std@0.208.0/dotenv/load.ts';
+import 'std/dotenv/load.ts';
 import { Remote } from '../src/remote/mod.ts';
-import { assert, assertEquals } from 'https://deno.land/std@0.208.0/assert/mod.ts';
+import { assert } from 'std/assert/mod.ts';
+import { expect } from 'std/expect/mod.ts';
+import { describe, it } from 'std/testing/bdd.ts';
 
-Deno.test('Remote', async (t) => {
-    using remote = new Remote(Deno.env.get('RPC_HOST')!, Number(Deno.env.get('RPC_PORT')!));
+const remote = new Remote(Deno.env.get('RPC_HOST')!, Number(Deno.env.get('RPC_PORT')!));
+await remote.connect();
 
-    await remote.connect();
-
-    await t.step('Authenticate', async () => {
-        const result = await remote.Authenticate(Deno.env.get('RPC_USER')!, Deno.env.get('RPC_PASS')!);
-        assertEquals(result, true, 'call to Authenticate()');
+describe('Remote', () => {
+    it('Authenticate rejected', async () => {
+        try {
+            await remote.Authenticate('fault', 'test');
+        } catch (e) {
+            expect(e.cause, 'call to Authenticate() with fault').toMatchObject(
+                {
+                    value: {
+                        struct: {
+                            member: [
+                                {
+                                    name: 'faultCode',
+                                    value: {
+                                        int: '-1000',
+                                    },
+                                },
+                                {
+                                    name: 'faultString',
+                                    value: {
+                                        string: 'User unknown.',
+                                    },
+                                },
+                            ],
+                        },
+                    },
+                },
+            );
+        }
     });
 
-    await t.step('Single calls', async () => {
+    it('Authenticate', async () => {
+        const result = await remote.Authenticate(Deno.env.get('RPC_USER')!, Deno.env.get('RPC_PASS')!);
+        expect(result, 'call to Authenticate()').toBe(true);
+    });
+
+    it('Single calls', async () => {
         let result = await remote.SetApiVersion('2023-04-24');
-        assert(result, 'SetApiVersion()');
+        expect(result, 'SetApiVersion()').toBe(true);
 
         result = await remote.EnableCallbacks(true);
-        assert(result, 'EnableCallbacks()');
+        expect(result, 'EnableCallbacks()').toBe(true);
 
         result = await remote.TriggerModeScriptEventArray('XmlRpc.EnableCallbacks', ['true']);
-        assert(result, 'TriggerModeScriptEventArray()');
+        expect(result, 'TriggerModeScriptEventArray()').toBe(true);
     });
 
-    await t.step('Multiple calls', async () => {
+    it('Multiple calls', async () => {
         const result = await remote.multiCall(async (call) => [
             await call.GetMapList(-1, 0),
             await call.GetSystemInfo(),
@@ -37,33 +67,33 @@ Deno.test('Remote', async (t) => {
         const [mapList, systemInfo] = result;
 
         assert(Array.isArray(mapList));
-        assertEquals(mapList.length, 5);
+        expect(mapList.length).toBe(5);
 
         const map = mapList.at(0);
         assert(map);
 
-        assertEquals(map.UId, 'CMbUs4OzcDEwUcUUfOonUk4bit8');
-        assertEquals(map.Name, 'Fall 2023 - 01');
-        assertEquals(map.FileName, 'Campaigns/CurrentQuarterly/Fall 2023 - 01.Map.Gbx');
-        assertEquals(map.Environnement, 'Stadium');
-        assertEquals(map.Author, 'Nadeo');
-        assertEquals(map.AuthorNickname, '');
-        assertEquals(map.GoldTime, 26000);
-        assertEquals(map.CopperPrice, 4039);
-        assertEquals(map.MapType, 'TrackMania\\TM_Race');
-        assertEquals(map.MapStyle, '');
+        expect(map.UId).toBe('CMbUs4OzcDEwUcUUfOonUk4bit8');
+        expect(map.Name).toBe('Fall 2023 - 01');
+        expect(map.FileName).toBe('Campaigns/CurrentQuarterly/Fall 2023 - 01.Map.Gbx');
+        expect(map.Environnement).toBe('Stadium');
+        expect(map.Author).toBe('Nadeo');
+        expect(map.AuthorNickname).toBe('');
+        expect(map.GoldTime).toBe(26000);
+        expect(map.CopperPrice).toBe(4039);
+        expect(map.MapType).toBe('TrackMania\\TM_Race');
+        expect(map.MapStyle).toBe('');
 
         assert(systemInfo);
 
-        assertEquals(systemInfo.PublishedIp, '127.0.0.1');
-        assertEquals(systemInfo.Port, 2_350);
-        assertEquals(systemInfo.P2PPort, 0);
-        assertEquals(systemInfo.TitleId, 'Trackmania');
-        assertEquals(systemInfo.ServerLogin, 'fLv-F-6yTYGlKGIPsd2RtQ');
-        assertEquals(systemInfo.ServerPlayerId, 0);
-        assertEquals(systemInfo.ConnectionDownloadRate, 102_400);
-        assertEquals(systemInfo.ConnectionUploadRate, 102_400);
-        assertEquals(systemInfo.IsServer, true);
-        assertEquals(systemInfo.IsDedicated, true);
+        expect(systemInfo.PublishedIp).toBe('127.0.0.1');
+        expect(systemInfo.Port).toBe(2_350);
+        expect(systemInfo.P2PPort).toBe(0);
+        expect(systemInfo.TitleId).toBe('Trackmania');
+        expect(systemInfo.ServerLogin).toBe('fLv-F-6yTYGlKGIPsd2RtQ');
+        expect(systemInfo.ServerPlayerId).toBe(0);
+        expect(systemInfo.ConnectionDownloadRate).toBe(102_400);
+        expect(systemInfo.ConnectionUploadRate).toBe(102_400);
+        expect(systemInfo.IsServer).toBe(true);
+        expect(systemInfo.IsDedicated).toBe(true);
     });
 });

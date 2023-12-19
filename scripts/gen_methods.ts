@@ -51,9 +51,9 @@ const rpcMethods = await remote['system.listMethods']();
 const methods = [];
 
 for (const name of rpcMethods) {
-    const [signature, help] = await remote.multiCall(async (call) => [
-        await call['system.methodSignature'](name),
-        await call['system.methodHelp'](name),
+    const [signature, help] = await remote.multiCall((call) => [
+        call['system.methodSignature'](name),
+        call['system.methodHelp'](name),
     ]);
     const params = signature.at(0)!;
     methods.push({

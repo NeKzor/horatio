@@ -37,6 +37,13 @@ export type RpcResponse = {
     methodResponse: RpcMethodResponse | RpcFaultResponse;
 };
 
+export type MultiCall = {
+    // deno-lint-ignore no-explicit-any
+    [key in RpcMethod]: Remote[key] extends (...args: any) => any
+        ? (...params: Parameters<Remote[key]>) => ReturnType<Remote[key]> extends Promise<infer T> ? T : never
+        : never;
+};
+
 const encoder = new TextEncoder();
 const decoder = new TextDecoder();
 
@@ -140,18 +147,33 @@ export class Remote {
     /**
      * Call multiple methods at once.
      * ```ts
-     * const [dataDirectory, chatLines] = await remote.multiCall(async (call) => [
-     *     await call.GameDataDirectory(),
-     *     await call.GetChatLines(),
+     * const [dataDirectory, chatLines] = await remote.multiCall((call) => [
+     *     call.GameDataDirectory(),
+     *     call.GetChatLines(),
      * ]);
      * ```
      */
     async multiCall<T extends unknown[]>(
-        calls: (remote: MultiCall) => Promise<[...T]>,
+        func: (remote: MultiCall) => [...T],
     ) {
-        const mc = new MultiCall(this.hostname, this.port);
-        const res = await calls(mc);
-        return await this.call('system.multicall', mc.queue) as typeof res;
+        const queue: unknown[] = [];
+
+        const proxyCall = (methodName: string, ...params: unknown[]) => {
+            queue.push({ methodName, params });
+        };
+
+        const proxy = new Proxy(this as MultiCall, {
+            get(target, p) {
+                if (p === 'call') {
+                    return proxyCall;
+                }
+                return target[p as keyof MultiCall];
+            },
+        });
+
+        const res = func(proxy);
+
+        return await this.call('system.multicall', queue) as typeof res ?? [];
     }
     /**
      * Return an array of all available XML-RPC methods on this server.
@@ -1837,15 +1859,6 @@ export class Remote {
      */
     StartServerInternet() {
         return this.call<boolean>('StartServerInternet');
-    }
-}
-
-export class MultiCall extends Remote {
-    queue: unknown[] = [];
-
-    call<T>(methodName: string, ...params: unknown[]) {
-        this.queue.push({ methodName, params });
-        return Promise.resolve() as T;
     }
 }
 

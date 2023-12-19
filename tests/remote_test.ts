@@ -57,9 +57,9 @@ describe('Remote', () => {
     });
 
     it('Multiple calls', async () => {
-        const result = await remote.multiCall(async (call) => [
-            await call.GetMapList(-1, 0),
-            await call.GetSystemInfo(),
+        const result = await remote.multiCall((call) => [
+            call.GetMapList(-1, 0),
+            call.GetSystemInfo(),
         ]);
 
         assert(result, 'multiCall()');

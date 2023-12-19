@@ -20,9 +20,9 @@ try {
     await remote.EnableCallbacks(true);
     await remote.TriggerModeScriptEventArray('XmlRpc.EnableCallbacks', ['true']);
 
-    const [mapList, systemInfo] = await remote.multiCall(async (call) => [
-        await call.GetMapList(-1, 0),
-        await call.GetSystemInfo(),
+    const [mapList, systemInfo] = await remote.multiCall((call) => [
+        call.GetMapList(-1, 0),
+        call.GetSystemInfo(),
     ]);
 
     console.log({ mapList, systemInfo });

@@ -34,8 +34,8 @@ await remote.TriggerModeScriptEventArray(
 const [
     mapList,
     systemInfo,
-] = await remote.multiCall(async (call) => [
-    await call.GetMapList(-1, 0),
-    await call.GetSystemInfo(),
+] = await remote.multiCall((call) => [
+    call.GetMapList(-1, 0),
+    call.GetSystemInfo(),
 ]);
 ```

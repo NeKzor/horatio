@@ -120,7 +120,7 @@ export const deserialize = <T>(value: any): T => {
             return deserialize(value.struct);
         }
         if ('member' in value) {
-            return Object.assign({}, ...deserialize(value.member) as T[]);
+            return Object.assign(Object.create(null), ...deserialize(value.member) as T[]);
         }
         for (const [key, prop] of Object.entries(value)) {
             value[key] = deserialize(prop);

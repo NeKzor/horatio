@@ -1,7 +1,7 @@
 {
     "tasks": {
         "start": "deno run --allow-env --allow-read=.env,.env.example,.env.defaults --allow-net=127.0.0.1:5000 src/main.ts",
-        "gen": "deno run --allow-read=methods.json scripts/gen_remote.ts > src/remote/mod.ts && deno fmt src/remote/mod.ts",
+        "gen": "deno run --allow-read=methods.json scripts/gen_remote.ts > src/remote/methods.ts && deno fmt src/remote/methods.ts",
         "docs": "deno run --allow-read=methods.json --allow-write=docs/docs/rpc.md scripts/gen_docs.ts > docs/docs/rpc.md",
         "methods": "deno run --allow-write=methods.json scripts/gen_methods.ts",
         "ml": "deno run --allow-read=styles.json scripts/gen_ml.ts > src/mlx/ml.ts",

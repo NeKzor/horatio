@@ -22,7 +22,7 @@ Minimalistic server controller for Trackmania.
 | Start Year             | 2023                  | 2021                    | 2018                | 2017                | 2014                       |
 | Game Support           | TM                    | TM                      | TM, TM2             | TM, TM2, SM         | TM, TM2, SM                |
 | ManiaLinks             | MLX                   | ManiaTemplates          | Latte               | Jinja               | FML                        |
-| Line Count<sup>2</sup> | \< 10'000             | 25'474                  | 15,299              | 26'342              | 41'343                     |
+| Line Count<sup>2</sup> | \< 10'000             | 25'474                  | 15'299              | 26'342              | 41'343                     |
 | Docker                 | -                     | -                       | Yes                 | Yes                 | No                         |
 | Website                | [horatio.land][h-www] | [evosc.io][e2-www]      | -                   | [pypla.net][pp-www] | [maniacontrol.com][mc-www] |
 | Documentation          | [Yes][h-docs]         | [Yes][e2-docs]          | [Yes][e1-docs]      | [Yes][pp-docs]      | [Yes][mc-docs]             |

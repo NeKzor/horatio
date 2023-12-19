@@ -99,7 +99,7 @@ export class Remote {
     }
     protected async call<T>(methodName: RpcMethod, ...params: unknown[]) {
         if (!this.#connection) {
-            throw new Error('Not connected!');
+            throw new Error('Not connected. Did you forget to call connect()?');
         }
 
         const xmlParams = params.map((param) => {

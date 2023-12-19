@@ -91,6 +91,7 @@ console.log(`// Copyright (c) 2023, NeKz
 // SPDX-License-Identifier: MIT
 
 import * as XML from 'xml/mod.ts';
+import { ParserOptions } from 'xml/utils/types.ts';
 import { Base64, deserialize, Double, Integer, serialize } from './xml.ts';
 
 // deno-lint-ignore-file ban-types
@@ -135,6 +136,18 @@ export type MultiCall = {
 
 const encoder = new TextEncoder();
 const decoder = new TextDecoder();
+
+const xmlOptions: ParserOptions = {
+    emptyToNull: false,
+    reviveNumbers: false,
+    reviveBooleans: false,
+    reviver(options) {
+        if (options.tag === 'boolean' && options.value?.toString()?.length) {
+            return options.value === '1' ? true : false;
+        }
+        return options.value;
+    },
+};
 
 export class Remote {
     #connection: Deno.Conn | null = null;
@@ -212,18 +225,11 @@ export class Remote {
             await this.#connection.read(payload);
 
             const response = decoder.decode(payload);
-            const doc = XML.parse(response, {
-                emptyToNull: false,
-                reviveNumbers: false,
-                reviveBooleans: false,
-                reviver(options) {
-                    if (options.tag === 'boolean' && options.value?.toString()?.length) {
-                        return options.value === '1' ? true : false;
-                    }
-                    return options.value;
-                },
-                // deno-lint-ignore no-explicit-any
-            }) as any as RpcResponse;
+            const doc = XML.parse(response, xmlOptions) as unknown as RpcResponse;
+
+            if (!doc.methodResponse) {
+                throw new Error('Received invalid document.', { cause: response });
+            }
 
             if ('fault' in doc.methodResponse) {
                 throw new Error('XML-RPC fault.', { cause: doc.methodResponse.fault });

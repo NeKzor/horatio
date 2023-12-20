@@ -91,6 +91,10 @@ export const serialize = (arg: unknown): string | undefined => {
 // deno-lint-ignore no-explicit-any
 export const deserialize = <T>(value: any): T => {
     if (typeof value === 'object') {
+        if ('xml' in value) {
+            delete value.xml;
+            return value as T;
+        }
         if ('value' in value && 'name' in value) {
             const [type, val] = Object.entries(value['value']).at(0) as [string, unknown];
             switch (type) {

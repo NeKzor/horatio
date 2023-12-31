@@ -1,6 +1,7 @@
 .vscode/
 docs/node_modules
 npm/
+scripts/data/doc.h
 src/remote/node.ts
 src/ui.tsx
 .env
